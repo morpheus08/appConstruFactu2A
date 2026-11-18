@@ -1,0 +1,1 @@
+window.ConstruFactu = window.ConstruFactu || {};

@@ -2,8 +2,8 @@
     // ==========================================
     // CONSTRUFACTU v0.9.45 - MÓDULO ESTABLE UNIFICADO
     // ==========================================
-	const DEV_MODE = true; // <-- INTERRUPTOR GLOBAL (Cambiar a false para producción)
-    const ConstruFactu = {
+    const ConstruFactu = window.ConstruFactu;
+    Object.assign(ConstruFactu, {
       DB_NAME: 'ConstruFactuDB_v0928',
       STORE_NAME: 'state_store',
       
@@ -64,7 +64,7 @@
             let prev = '0'.repeat(64);
             obj.documentos.filter(d => d.estado === 'Oficial' && d.hashVerifactu)
               .sort((x, y) => String(x.fechaHoraRegistro).localeCompare(String(y.fechaHoraRegistro))).forEach((d, i) => {
-                const t = Money.totalesLegacy(d);
+                const t = ConstruFactu.Money.totalesLegacy(d);
                 obj.verifactuLog.push({ n: i + 1, docId: d.id, tipo: d.tipo, numero: d.numero, idEmisor: (obj.empresa || {}).nif || '', fecha: d.fecha,
                   cuota: Number(t.cuota.toFixed(2)), total: Number(t.total.toFixed(2)), fechaHoraRegistro: d.fechaHoraRegistro,
                   huellaAnterior: prev, huella: d.hashVerifactu, formato: 1 });
@@ -418,12 +418,12 @@
           if (doc.estado === 'Oficial') {
             const r = (ConstruFactu.Store.state.verifactuLog || []).find(x => x.docId === doc.id);
             if (r && r.formato === 1) {                       // emitida con la fórmula antigua: importes congelados
-              const cuotaC = Money.aCent(r.cuota), totalC = Money.aCent(r.total);
-              return { baseC: totalC - cuotaC, cuotaC, totalC, lineasC: Money.totales(doc).lineasC,
+              const cuotaC = ConstruFactu.Money.aCent(r.cuota), totalC = ConstruFactu.Money.aCent(r.total);
+              return { baseC: totalC - cuotaC, cuotaC, totalC, lineasC: ConstruFactu.Money.totales(doc).lineasC,
                        base: (totalC - cuotaC) / 100, cuota: cuotaC / 100, total: totalC / 100 };
             }
           }
-          return Money.totales(doc);
+          return ConstruFactu.Money.totales(doc);
         },
         siguienteBorrador(tipo) {
           const nums = this.obtenerTodos().filter(d => d.tipo === tipo && d.estado !== 'Oficial')
@@ -532,10 +532,10 @@
             prev = r.huella;
             const d = docs.find(x => x.id === r.docId);
             if (!d || d.estado !== 'Oficial') { errores.push(`${et}: el documento oficial falta o cambió de estado.`); continue; }
-            const L = r.formato === 1 ? Money.totalesLegacy(d) : null;
-            const t = L ? { cuotaC: Money.aCent(L.cuota), totalC: Money.aCent(L.total) } : Money.totales(d);
+            const L = r.formato === 1 ? ConstruFactu.Money.totalesLegacy(d) : null;
+            const t = L ? { cuotaC: ConstruFactu.Money.aCent(L.cuota), totalC: ConstruFactu.Money.aCent(L.total) } : ConstruFactu.Money.totales(d);
             if (d.numero !== r.numero || d.fecha !== r.fecha || d.hashVerifactu !== r.huella ||
-                Math.abs(t.cuotaC - Money.aCent(r.cuota)) > (r.formato === 1 ? 1 : 0) || Math.abs(t.totalC - Money.aCent(r.total)) > (r.formato === 1 ? 1 : 0)) {
+                Math.abs(t.cuotaC - ConstruFactu.Money.aCent(r.cuota)) > (r.formato === 1 ? 1 : 0) || Math.abs(t.totalC - ConstruFactu.Money.aCent(r.total)) > (r.formato === 1 ? 1 : 0)) {
               errores.push(`${et}: el documento fue modificado después de emitirse.`);
             }
           }
@@ -627,7 +627,7 @@
           else btn.classList.add('hidden');
         }
       }
-    };
+    });
 
     /* ═══ DINERO: aritmética en céntimos enteros (sin errores de coma flotante) ═══
        · Importes en euros → céntimos con redondeo "half away from zero" (el habitual en facturación).
@@ -667,40 +667,6 @@
       UI.irA(destino, { sinHistorial: true });
     });
     try { history.replaceState({ cf: 1, v: 'login' }, ''); } catch (e) {}
-
-    const Money = {
-      _esc(v, dec) {                                   // número → entero escalado 10^dec, redondeo half-away
-        if (typeof v === 'string') v = v.replace(',', '.');
-        const n = Number(v);
-        if (!isFinite(n)) return 0;
-        return (n < 0 ? -1 : 1) * Math.floor(Number(Math.abs(n).toFixed(8) + 'e' + dec) + 0.5);
-      },
-      aCent(euros) { return this._esc(euros, 2); },
-      lineaC(cantidad, precio) {                       // milésimas × diezmilésimas / 100000
-        const p = this._esc(cantidad, 3) * this._esc(precio, 4);
-        return (p < 0 ? -1 : 1) * Math.floor((Math.abs(p) + 50000) / 100000);
-      },
-      cuotaC(baseC, ivaPct) {
-        const bp = Math.round((Number(ivaPct) || 0) * 100);
-        const p = baseC * bp;
-        return (p < 0 ? -1 : 1) * Math.floor((Math.abs(p) + 5000) / 10000);
-      },
-      totales(doc) {
-        const lineasC = (doc.lineas || []).map(l => this.lineaC(l.cantidad, l.precio));
-        const baseC = lineasC.reduce((a, c) => a + c, 0), cuotaC = this.cuotaC(baseC, doc.iva), totalC = baseC + cuotaC;
-        return { baseC, cuotaC, totalC, lineasC, base: baseC / 100, cuota: cuotaC / 100, total: totalC / 100 };
-      },
-      // Fórmula anterior (coma flotante, sin redondeo por línea). SOLO para facturas oficiales emitidas antes de los céntimos.
-      totalesLegacy(doc) {
-        const base = (doc.lineas || []).reduce((a, l) => a + (Number(l.cantidad) || 0) * (Number(l.precio) || 0), 0);
-        const cuota = base * ((Number(doc.iva) || 0) / 100);
-        return { base, cuota, total: base + cuota };
-      },
-      gasto(g) {
-        const baseC = this.aCent(g.base), cuotaC = this.cuotaC(baseC, g.iva);
-        return { baseC, cuotaC, totalC: baseC + cuotaC };
-      }
-    };
 
     // SheetJS solo se descarga cuando se importa/exporta Excel (la app arranca sin red).
     let _xlsxPromise = null;
@@ -857,34 +823,6 @@
     function soloNumeros(input) {
       input.value = input.value.replace(/\D/g, '');
     }
-
-    const estadoInicialPorDefecto = {
-      auth: { email: '', intentos: 0, bloqueadoHasta: 0 },
-      empresa: { nombre: 'Construcciones García S.L.', nif: 'B41987654', direccion: 'Pol. Ind. El Pino, Nave 12 · 41016 Sevilla', iban: 'ES91 2100 0418 4502 0005 1332', serie: 'F2026', serieRectificativa: 'R2026', logo: '', frecuenciaRecordatorio: '7', fechaCreacionSistema: new Date().toISOString(), licenciaTipo: 'prueba', licenciaExpiracion: '' },
-      unidades: ['ud', 'm²', 'ml', 'm³', 'h', 'pa', 'kg', 'día'],
-      catalogoPrecios: [
-        { id: 't1', capitulo: 'Revestimientos', concepto: 'Alicatado porcelánico baño/cocina', unidad: 'm²', precio: 32.00 },
-        { id: 't2', capitulo: 'Albañilería', concepto: 'Enfoscado maestreado mortero cemento', unidad: 'm²', precio: 18.00 }
-      ],
-      clientes: [
-        { id: 'c1', nombre: 'Promociones Aljarafe S.L.', nif: 'B91234567', direccion: 'Avda. de Europa 44', cp: '41927', poblacion: 'Mairena del Aljarafe (Sevilla)', telefono: '954000000', movil: '654321987', email: 'obras@aljarafe.es', observaciones: 'Forma de pago transferencia 30 días' },
-        { id: 'c2', nombre: 'Manuel Fernández Ruiz', nif: '28765432M', direccion: 'C/ Real 18', cp: '41800', poblacion: 'Sanlúcar la Mayor (Sevilla)', telefono: '955000000', movil: '611223344', email: 'mfernandez@email.com', observaciones: 'Llamar antes de entregar' }
-      ],
-      documentos: [
-        {
-          id: 'd1', tipo: 'presupuesto', numero: 'P2026-001', clienteId: 'c2', obra: 'Reforma integral baño', fecha: '2026-11-05', iva: 10, estado: 'Aceptado',
-          observaciones: 'Validez 15 días.', lineas: [{ concepto: 'Alicatado porcelánico baño/cocina', cantidad: 22, unidad: 'm²', precio: 32.00 }]
-        }
-      ],
-      gastos: [],
-      proveedores: [
-        { id: 'prov1', nombre: 'Materiales de Construcción Sevilla S.A.', nif: 'A41122334', telefono: '954111222', contacto: 'Juan Pérez' },
-        { id: 'prov2', nombre: 'Alquileres Maquinaria Andaluza', nif: 'B41555666', telefono: '955444333', contacto: 'Rafa Gómez' }
-      ],
-      ultimoHashVerifactu: '0000000000000000000000000000000000000000000000000000000000000000',
-      verifactuLog: [],
-      contadoresVerifactu: {}
-    };
 
     function accionScrollFlotante() {
       window.scrollBy({ top: 300, behavior: 'smooth' });
@@ -1380,7 +1318,7 @@
 
     function recalcularEditor() {
       const iva = Number(document.getElementById('doc-iva').value) || 0;
-      const t = Money.totales({ lineas: lineasEditorTemp, iva });
+      const t = ConstruFactu.Money.totales({ lineas: lineasEditorTemp, iva });
       document.getElementById('ed-base').textContent = fmtEuro(t.base);
       document.getElementById('ed-iva-cuota').textContent = fmtEuro(t.cuota);
       document.getElementById('ed-total').textContent = fmtEuro(t.total);
@@ -1595,7 +1533,7 @@
             <td class="py-3 px-2">${escapeHTML(l.concepto)}</td>
             <td class="py-3 px-2 text-right whitespace-nowrap">${fmtCant(l.cantidad)} ${escapeHTML(l.unidad)}</td>
             <td class="py-3 px-2 text-right whitespace-nowrap">${fmtPrecio(l.precio)}</td>
-            <td class="py-3 px-2 text-right font-bold whitespace-nowrap">${fmtEuro(Money.lineaC(l.cantidad, l.precio) / 100)}</td>
+            <td class="py-3 px-2 text-right font-bold whitespace-nowrap">${fmtEuro(ConstruFactu.Money.lineaC(l.cantidad, l.precio) / 100)}</td>
           </tr>
         `;
       });
@@ -1802,7 +1740,7 @@
       const filtrados = (ConstruFactu.Store.state.gastos || []).filter(g => g.proveedor.toLowerCase().includes(q) || g.concepto.toLowerCase().includes(q));
       if (!filtrados.length) { cont.innerHTML = `<div class="text-center text-xs text-slate-400 py-8">No hay gastos.</div>`; return; }
       cont.innerHTML = filtrados.map(g => {
-        const tot = Money.gasto(g).totalC / 100;
+        const tot = ConstruFactu.Money.gasto(g).totalC / 100;
         return `
           <div class="bg-white p-4 rounded-2xl border shadow-sm flex justify-between items-center">
             <div>
@@ -1851,12 +1789,12 @@
     function recalcularGasto() {
       const base = Number(document.getElementById('gas-base').value) || 0;
       const iva = Number(document.getElementById('gas-iva').value) || 0;
-      document.getElementById('gas-total-preview').textContent = fmtEuro(Money.gasto({ base, iva }).totalC / 100);
+      document.getElementById('gas-total-preview').textContent = fmtEuro(ConstruFactu.Money.gasto({ base, iva }).totalC / 100);
     }
     async function guardarGasto() {
       const id = document.getElementById('gas-id').value;
       const proveedor = document.getElementById('gas-proveedor').value.trim();
-      const base = Money.aCent(document.getElementById('gas-base').value) / 100;
+      const base = ConstruFactu.Money.aCent(document.getElementById('gas-base').value) / 100;
       if (!proveedor || !(base > 0)) { avisar('Proveedor y base obligatorios.'); return; }
 
       const datosGasto = {
@@ -2035,7 +1973,7 @@
       const id = document.getElementById('tar-id').value;
       const capitulo = document.getElementById('tar-capitulo').value.trim();
       const concepto = document.getElementById('tar-concepto').value.trim();
-      const precio = Money._esc(document.getElementById('tar-precio').value, 4) / 1e4;
+      const precio = ConstruFactu.Money._esc(document.getElementById('tar-precio').value, 4) / 1e4;
       if (!capitulo || !concepto || isNaN(precio)) { avisar('Campos obligatorios.'); return; }
       await ConstruFactu.Tarifario.guardar({
         id: id || 't' + Date.now(), capitulo, concepto,
@@ -2055,7 +1993,7 @@
     function renderEstado() {
       const ventas = ConstruFactu.Store.state.documentos.filter(d => d.estado === 'Oficial').reduce((acc, d) => acc + calcTotalesDoc(d).baseC, 0) / 100;
       const ivaRep = ConstruFactu.Store.state.documentos.filter(d => d.estado === 'Oficial').reduce((acc, d) => acc + calcTotalesDoc(d).cuotaC, 0) / 100;
-      const ivaSop = (ConstruFactu.Store.state.gastos || []).reduce((acc, g) => acc + Money.gasto(g).cuotaC, 0) / 100;
+      const ivaSop = (ConstruFactu.Store.state.gastos || []).reduce((acc, g) => acc + ConstruFactu.Money.gasto(g).cuotaC, 0) / 100;
       document.getElementById('est-ventas-base').textContent = fmtEuro(ventas);
       document.getElementById('est-iva-rep').textContent = fmtEuro(ivaRep);
       document.getElementById('est-iva-sop').textContent = fmtEuro(ivaSop);
@@ -2075,8 +2013,8 @@
     function exportarCSVGastos() {
       const filas = [['Proveedor', 'NIF', 'Concepto', 'Fecha', 'Base', 'IVA', 'Total']];
       (ConstruFactu.Store.state.gastos || []).forEach(g => {
-        const tot = Money.gasto(g).totalC / 100;
-        filas.push([g.proveedor, g.nif || '', g.concepto, g.fecha, Number(g.base).toFixed(2), (Money.gasto(g).cuotaC / 100).toFixed(2), tot.toFixed(2)]);
+        const tot = ConstruFactu.Money.gasto(g).totalC / 100;
+        filas.push([g.proveedor, g.nif || '', g.concepto, g.fecha, Number(g.base).toFixed(2), (ConstruFactu.Money.gasto(g).cuotaC / 100).toFixed(2), tot.toFixed(2)]);
       });
       const blob = new Blob([filas.map(r => r.join(';')).join('\n')], { type: 'text/csv;charset=utf-8;' });
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'libro_gastos.csv'; a.click();
