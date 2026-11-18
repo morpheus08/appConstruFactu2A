@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://cdn.sheetjs.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; manifest-src 'self' blob:; font-src 'self' data:; connect-src 'self'; script-src-attr 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ConstruFactu">
+  <link rel="apple-touch-icon" href="data:image/png;base64,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">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f172a'/%3E%3Ctext x='32' y='42' font-size='28' font-weight='700' text-anchor='middle' fill='%23f59e0b' font-family='Arial'%3ECF%3C/text%3E%3C/svg%3E">
+  <script>
+    /* Manifest generado en runtime (modo un-solo-archivo). start_url = este mismo documento. */
+    (function () {
+      try {
+        const svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='96' fill='#0f172a'/><text x='256' y='330' font-size='230' font-weight='700' text-anchor='middle' fill='#f59e0b' font-family='Arial'>CF</text></svg>";
+        const m = { name: 'ConstruFactu', short_name: 'ConstruFactu', lang: 'es', display: 'standalone', orientation: 'portrait',
+          start_url: location.href.split('#')[0], scope: location.href.split('#')[0].replace(/[^/]*$/, ''),
+          background_color: '#0f172a', theme_color: '#0f172a',
+          icons: [{ src: 'data:image/svg+xml;base64,' + btoa(svg), sizes: 'any', type: 'image/svg+xml', purpose: 'any' }] };
+        const l = document.createElement('link'); l.rel = 'manifest';
+        l.href = URL.createObjectURL(new Blob([JSON.stringify(m)], { type: 'application/manifest+json' }));
+        document.head.appendChild(l);
+      } catch (e) {}
+    })();
+  </script>
+  <title>ConstruFactu - Gestión de Obra y Veri*factu</title>
+  <meta name="theme-color" content="#0f172a">
+  <script src="https://cdn.tailwindcss.com" data-vendor="tailwind"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" data-vendor="qrcode"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@4.2.1/dist/jspdf.umd.min.js" data-vendor="jspdf"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@5.0.9/dist/jspdf.plugin.autotable.min.js" data-vendor="autotable"></script>
+  <style>
+    * { -webkit-tap-highlight-color: transparent; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .hoja-a4 {
+      width: 210mm;
+      min-height: 297mm;
+      padding: 15mm 16mm;
+      background: #ffffff;
+      color: #0f172a;
+      box-sizing: border-box;
+      margin: 0 auto;
+    }
+    @page { size: A4 portrait; margin: 0; }
+    @media print {
+      body * { visibility: hidden; }
+      #print-area, #print-area * { visibility: visible; }
+      #print-area {
+        position: absolute; left: 0; top: 0; width: 210mm; min-height: 297mm; padding: 15mm 16mm; background: white; margin: 0; box-shadow: none !important;
+      }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-900 min-h-screen flex justify-center">
+
+  <div id="app" class="w-full max-w-md md:max-w-4xl lg:max-w-5xl bg-slate-50 min-h-screen shadow-xl relative flex flex-col mx-auto">
+
+    <!-- BOTÓN FLOTANTE DE SCROLL -->
+    <button id="btn-scroll-float" data-click="accionScrollFlotante" title="Desplazar"
+      class="hidden fixed bottom-5 right-4 z-30 w-11 h-11 rounded-full bg-slate-900/90 text-amber-400 border border-amber-500/60 shadow-lg flex items-center justify-center text-lg font-extrabold active:scale-95 transition no-print">
+      ↓
+    </button>
+
+    <!-- PANTALLA 1: LOGIN / REGISTRO / RECUPERACIÓN -->
+    <section id="view-login" class="flex-1 flex flex-col justify-between p-6 bg-white relative">
+      
+      <!-- FRANJA DE AVISO MODO DESARROLLO -->
+      <div id="banner-dev-mode" class="hidden absolute top-0 inset-x-0 bg-amber-500 text-slate-950 text-[10px] font-extrabold text-center py-1 uppercase tracking-wider shadow-sm">
+        ⚠️ Modo Desarrollo Activo (Acceso rápido permitido)
+      </div>
+
+      <div class="pt-6 flex flex-col items-center text-center">
+        <div class="w-16 h-16 rounded-2xl bg-slate-900 flex items-center justify-center shadow-lg mb-3 border-2 border-amber-500">
+          <svg class="w-9 h-9 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 15h18M5 15v-2a7 7 0 0114 0v2M10 6v4m4-4v4M4 18h16"/>
+          </svg>
+        </div>
+        <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">CONSTRUFACTU</h1>
+        <p class="text-[11px] font-semibold uppercase tracking-widest text-amber-600 mt-0.5">Gestión de Obra y Veri*factu</p>
+      </div>
+
+      <!-- PESTAÑAS LOGIN / REGISTRO -->
+      <div class="my-4 space-y-4">
+        <div class="flex rounded-xl bg-slate-100 p-1 border border-slate-200">
+          <button id="tab-btn-login" data-click="cambiarTabLogin" data-click-args='["login"]' class="flex-1 py-2 rounded-lg text-xs font-extrabold bg-slate-900 text-white shadow-sm transition">ACCEDER</button>
+          <button id="tab-btn-registro" data-click="cambiarTabLogin" data-click-args='["registro"]' class="flex-1 py-2 rounded-lg text-xs font-extrabold text-slate-600 transition">REGISTRARSE</button>
+        </div>
+
+        <!-- FORMULARIO ACCESO -->
+        <div id="form-login-pane" class="space-y-3.5">
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Usuario / Email</label>
+            <input id="login-user" type="text" class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 text-sm font-medium focus:outline-none focus:border-slate-800">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">PIN / Contraseña</label>
+            <input id="login-pass" type="password" class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 text-sm font-medium focus:outline-none focus:border-slate-800">
+          </div>
+          <button data-click="iniciarSesion" class="w-full py-3.5 rounded-xl bg-slate-900 text-white font-bold text-sm tracking-wide shadow-md active:scale-[0.99] transition">
+            ENTRAR A CONSTRUFACTU
+          </button>
+          <div class="text-center pt-1">
+            <button data-click="cambiarTabLogin" data-click-args='["recuperar"]' class="text-xs font-bold text-slate-500 hover:text-slate-800 underline">¿Has olvidado tu contraseña?</button>
+          </div>
+        </div>
+
+        <!-- FORMULARIO REGISTRO -->
+        <div id="form-registro-pane" class="hidden space-y-3">
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Nombre de Empresa / Autónomo</label>
+            <input id="reg-empresa" type="text" placeholder="Ej: Reformas y Construcciones S.L." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">NIF / CIF</label>
+            <input id="reg-nif" type="text" placeholder="B12345678" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm uppercase">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Email de Acceso</label>
+            <input id="reg-email" type="email" placeholder="tu@email.com" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Contraseña / PIN</label>
+            <input id="reg-pass" type="password" placeholder="Mínimo 4 dígitos" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm">
+          </div>
+          <button data-click="registrarNuevaCuenta" class="w-full py-3 rounded-xl bg-emerald-700 text-white font-bold text-sm shadow-md">
+            CREAR CUENTA Y LICENCIA
+          </button>
+        </div>
+
+        <!-- FORMULARIO RECUPERACIÓN -->
+        <div id="form-recuperar-pane" class="hidden space-y-3">
+          <p class="text-xs text-slate-600">Introduce tu email y la clave de recuperación que se te mostró al registrarte.</p>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Email de la cuenta</label>
+            <input id="rec-email" type="email" placeholder="tu@email.com" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm">
+          </div>
+          <div><label class="block text-xs font-bold uppercase text-slate-500 mb-1">Clave de recuperación</label>
+            <input id="rec-clave" type="text" autocomplete="off" placeholder="XXXXX-XXXXX-XXXXX-XXXXX" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm uppercase"></div>
+          <div><label class="block text-xs font-bold uppercase text-slate-500 mb-1">PIN nuevo</label>
+            <input id="rec-pin" type="password" autocomplete="new-password" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"></div>
+          <button data-click="enviarRecuperacion" class="w-full py-3 rounded-xl bg-slate-800 text-white font-bold text-sm">
+            RECUPERAR ACCESO
+          </button>
+          <div class="text-center pt-1">
+            <button data-click="cambiarTabLogin" data-click-args='["login"]' class="text-xs font-bold text-slate-500 underline">Volver al acceso</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center pb-2 space-y-1.5">
+        <div class="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+          ● Licencia Activa · Modo Local-First
+        </div>
+        <div class="text-[10px] font-bold text-slate-400">ConstruFactu v0.9.45</div>
+      </div>
+    </section>
+
+    <!-- PANTALLA 2: MENÚ PRINCIPAL -->
+    <section id="view-menu" class="hidden flex-1 flex flex-col p-5">
+      <button data-click="irA" data-click-args='["config"]' class="w-full bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-3.5 text-left mb-3">
+        <div id="menu-logo-box" class="w-12 h-12 rounded-xl bg-slate-900 text-amber-400 flex items-center justify-center font-extrabold text-lg shrink-0 overflow-hidden border border-slate-300">CF</div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between">
+            <h2 id="menu-empresa-nombre" class="font-extrabold text-slate-900 text-base truncate">Construcciones García S.L.</h2>
+            <span class="text-xs font-semibold text-slate-400">⚙️ Ajustes</span>
+          </div>
+          <div class="flex items-center justify-between mt-0.5">
+            <p id="menu-empresa-nif" class="text-xs text-slate-500 truncate">NIF: B41987654</p>
+            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-amber-100 text-amber-900">PRUEBA 15 DÍAS</span>
+          </div>
+        </div>
+      </button>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1">
+        <button data-click="irA" data-click-args='["presupuestos"]' class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center text-2xl font-bold">📋</div>
+            <div class="text-left">
+              <div class="font-extrabold text-slate-900 text-base">PRESUPUESTOS</div>
+              <div class="text-xs text-slate-500">Valoraciones y ofertas de obra</div>
+            </div>
+          </div>
+          <span id="badge-presupuestos" class="text-xs font-bold bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg">0</span>
+        </button>
+
+        <button data-click="irA" data-click-args='["albaranes"]' class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center text-2xl font-bold">🚚</div>
+            <div class="text-left">
+              <div class="font-extrabold text-slate-900 text-base">ALBARANES</div>
+              <div class="text-xs text-slate-500">Entregas, partes y agrupación</div>
+            </div>
+          </div>
+          <span id="badge-albaranes" class="text-xs font-bold bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg">0</span>
+        </button>
+
+        <button data-click="irA" data-click-args='["facturas"]' class="bg-white p-4 rounded-2xl shadow-sm border-2 border-slate-900 flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-slate-900 text-amber-400 flex items-center justify-center text-2xl font-bold">🧾</div>
+            <div class="text-left">
+              <div class="font-extrabold text-slate-900 text-base">FACTURAS Y RECTIFICATIVAS</div>
+              <div class="text-xs text-slate-500">Proformas, Oficiales y Veri*factu R</div>
+            </div>
+          </div>
+          <span id="badge-facturas" class="text-xs font-bold bg-slate-900 text-white px-2.5 py-1 rounded-lg">0</span>
+        </button>
+
+        <div class="grid grid-cols-2 gap-3">
+          <button data-click="irA" data-click-args='["clientes"]' class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-start justify-between">
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-xl mb-2">👷</div>
+            <div class="font-extrabold text-slate-900 text-sm">CLIENTES</div>
+            <div id="badge-clientes" class="text-xs text-slate-500 mt-0.5">0 registrados</div>
+          </button>
+          <button data-click="irA" data-click-args='["gastos"]' class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-start justify-between">
+            <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-700 flex items-center justify-center text-xl mb-2">📥</div>
+            <div class="font-extrabold text-slate-900 text-sm">GASTOS</div>
+            <div id="badge-gastos" class="text-xs text-slate-500 mt-0.5">IVA soportado</div>
+          </button>
+        </div>
+
+        <button data-click="irA" data-click-args='["tarifario"]' class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center text-xl font-bold">📐</div>
+            <div class="text-left">
+              <div class="font-extrabold text-slate-900 text-sm">TARIFARIO</div>
+              <div class="text-xs text-slate-500">Base de precios y capítulos</div>
+            </div>
+          </div>
+          <span id="badge-tarifario" class="text-xs font-bold bg-indigo-50 text-indigo-800 px-2.5 py-1 rounded-lg">0</span>
+        </button>
+
+        <button data-click="irA" data-click-args='["estado"]' class="bg-slate-800 text-white p-4 rounded-2xl shadow-sm flex items-center justify-between">
+          <div class="flex items-center gap-3.5">
+            <div class="w-11 h-11 rounded-xl bg-slate-700 text-emerald-400 flex items-center justify-center text-xl">📊</div>
+            <div class="text-left">
+              <div class="font-extrabold text-sm">MI ESTADO Y TRIMESTRES</div>
+              <div class="text-xs text-slate-300">IVA Modelo 303 y CSV</div>
+            </div>
+          </div>
+          <span class="text-slate-400 text-lg">›</span>
+        </button>
+
+        <button data-click="irA" data-click-args='["ayuda"]' class="md:col-span-2 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 p-4 rounded-2xl shadow-md flex items-center justify-between font-bold">
+          <div class="flex items-center gap-3.5">
+            <div class="w-11 h-11 rounded-xl bg-slate-950/10 text-slate-950 flex items-center justify-center text-xl font-extrabold">📖</div>
+            <div class="text-left">
+              <div class="font-extrabold text-sm">MANUAL DE AYUDA Y GUÍA RÁPIDA</div>
+              <div class="text-xs text-slate-900/80">Preguntas frecuentes, Veri*factu y videotutoriales</div>
+            </div>
+          </div>
+          <span class="text-slate-950 text-lg font-black">›</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- CLIENTES -->
+    <section id="view-clientes" class="hidden flex-1 flex flex-col p-5">
+      <div class="flex items-center gap-3 mb-4">
+        <button data-click="irA" data-click-args='["menu"]' class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-bold text-lg">‹</button>
+        <h2 class="text-xl font-extrabold text-slate-900 flex-1">CLIENTES</h2>
+      </div>
+      <button data-click="abrirFormCliente" class="w-full py-3.5 rounded-xl bg-slate-900 text-white font-bold text-sm mb-3">+ NUEVO CLIENTE</button>
+      <div class="grid grid-cols-2 gap-2 mb-3">
+        <button data-click="exportarClientesCSV" class="py-2.5 px-3 rounded-xl bg-white border border-slate-300 text-slate-800 font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm">
+          <span>📥</span> EXPORTAR CSV
+        </button>
+        <button data-click="abrirModalImportarClientes" class="py-2.5 px-3 rounded-xl bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm">
+          <span>📤</span> IMPORTAR EXCEL / CSV
+        </button>
+      </div>
+      <input id="buscar-cliente" data-input="renderClientes" type="text" placeholder="Buscar cliente..." class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-sm mb-4">
+      <div id="lista-clientes" class="space-y-3 pb-10"></div>
+    </section>
+
+    <!-- FICHA CLIENTE -->
+    <section id="view-cliente-form" class="hidden flex-1 flex flex-col p-5">
+      <div class="flex items-center gap-3 mb-4">
+        <button data-click="irA" data-click-args='["clientes"]' class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-bold text-lg">‹</button>
+        <h2 id="titulo-form-cliente" class="text-lg font-extrabold text-slate-900">NUEVO CLIENTE</h2>
+      </div>
+      <div class="space-y-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+        <input type="hidden" id="cli-id">
+        <div>
+          <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Nombre / Razón Social *</label>
+          <textarea id="cli-nombre" rows="2" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm resize-y" placeholder="Nombre completo o razón social..."></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase text-slate-500 mb-1">NIF / CIF *</label>
+          <input id="cli-nif" type="text" class="w-full px-3.5 py-3 rounded-xl border border-slate-300 text-sm uppercase" placeholder="B12345678">
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Dirección</label>
+          <textarea id="cli-direccion" rows="2" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm resize-y" placeholder="Calle, número, piso..."></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Código Postal (CP) *</label>
+            <input id="cli-cp" type="text" maxlength="5" inputmode="numeric" pattern="[0-9]*" data-input="validarYBuscarCP" data-input-args='["$value"]' class="w-full px-3.5 py-3 rounded-xl border border-slate-300 text-sm font-bold" placeholder="41800">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Población *</label>
+            <input id="cli-poblacion" type="text" class="w-full px-3.5 py-3 rounded-xl border border-slate-300 text-sm" placeholder="Sanlúcar la Mayor">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Teléfono Fijo</label>
+            <input id="cli-telefono" type="text" inputmode="numeric" pattern="[0-9]*" data-input="soloNumeros" data-input-args='["$this"]' class="w-full px-3.5 py-3 rounded-xl border border-slate-300 text-sm" placeholder="954123456">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Teléfono Móvil</label>
+            <input id="cli-movil" type="text" inputmode="numeric" pattern="[0-9]*" data-input="soloNumeros" data-input-args='["$this"]' class="w-full px-3.5 py-3 rounded-xl border border-slate-300 text-sm" placeholder="600123456">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Correo Electrónico (Email)</label>
+          <input id="cli-email" type="email" class="w-full px-3.5 py-3 rounded-xl border border-slate-300 text-sm" placeholder="cliente@email.com">
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Observaciones / Forma de pago / Notas</label>
+          <textarea id="cli-observaciones" rows="3" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm resize-y" placeholder="Ej: Forma de pago transferible a 30 días, enviar factura previa por email..."></textarea>
+        </div>
+      </div>
+      <div class="mt-4 space-y-2.5 pb-10">
+        <button data-click="guardarCliente" class="w-full py-3.5 rounded-xl bg-slate-900 text-white font-bold text-sm">GUARDAR CLIENTE</button>
+        <button data-click="irA" data-click-args='["clientes"]' class="w-full py-3 rounded-xl bg-white border border-slate-300 text-slate-700 font-bold text-sm">CANCELAR</button>
+        <button id="btn-eliminar-cliente" data-click="eliminarCliente" class="hidden w-full py-3 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 font-bold text-xs mt-2">ELIMINAR CLIENTE</button>
+      </div>
+    </section>
+
+    <!-- LISTADO DOCUMENTOS -->
+    <section id="view-docs" class="hidden flex-1 flex flex-col p-5">
+      <div class="flex items-center gap-3 mb-4">
+        <button data-click="irA" data-click-args='["menu"]' class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-bold text-lg">‹</button>
+        <h2 id="docs-titulo" class="text-xl font-extrabold text-slate-900 flex-1">DOCUMENTOS</h2>
+      </div>
+      <button id="btn-nuevo-doc" data-click="nuevoDocumento" class="w-full py-3.5 rounded-xl bg-slate-900 text-white font-bold text-sm mb-3">+ NUEVO DOCUMENTO</button>
+      <div id="barra-agrupar-albaranes" class="hidden mb-3 p-3 rounded-xl bg-amber-50 border border-amber-300 flex items-center justify-between">
+        <span id="txt-albaranes-sel" class="text-xs font-bold text-amber-900">0 albaranes marcados</span>
+        <button data-click="unificarAlbaranesEnProforma" class="px-3 py-2 rounded-lg bg-amber-600 text-white font-extrabold text-xs">UNIFICAR EN PROFORMA</button>
+      </div>
+      <div id="lista-docs" class="space-y-3 pb-10"></div>
+    </section>
+
+    <!-- EDITOR DE DOCUMENTO -->
+    <section id="view-doc-editor" class="hidden flex-1 flex flex-col p-5">
+      <div class="flex items-center gap-3 mb-3">
+        <button data-click="volverDeEditor" class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-bold text-lg">‹</button>
+        <div class="flex-1">
+          <h2 id="editor-titulo" class="text-base font-extrabold text-slate-900">EDITAR DOCUMENTO</h2>
+          <p id="editor-subtitulo" class="text-xs text-slate-500">Borrador editable</p>
+        </div>
+      </div>
+      <div class="space-y-3 pb-12">
+        <input type="hidden" id="doc-id">
+        <input type="hidden" id="doc-tipo">
+
+        <div id="rectificativa-fields" class="hidden bg-indigo-50 p-4 rounded-2xl border border-indigo-200 space-y-3">
+          <div><label class="block text-xs font-bold uppercase text-indigo-900 mb-1">Factura Oficial Rectificada (Nº) *</label><input id="doc-factura-rectificada" type="text" placeholder="Ej: F2026-0001" class="w-full px-3 py-2.5 rounded-xl border border-indigo-300 bg-white text-sm font-bold uppercase"></div>
+          <div><label class="block text-xs font-bold uppercase text-indigo-900 mb-1">Motivo de la Rectificación *</label><input id="doc-motivo-rectificacion" type="text" placeholder="Ej: Devolución de materiales / Error en mediciones" class="w-full px-3 py-2.5 rounded-xl border border-indigo-300 bg-white text-sm font-medium"></div>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-3">
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="block text-xs font-bold uppercase text-slate-500">Cliente *</label>
+              <button data-click="abrirModalNuevoCliente" class="text-[11px] font-extrabold text-blue-600 hover:underline">+ Nuevo Cliente</button>
+            </div>
+            <select id="doc-cliente" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-sm font-semibold"></select>
+          </div>
+          <div><label class="block text-xs font-bold uppercase text-slate-500 mb-1">Obra / Referencia</label><input id="doc-obra" type="text" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-sm"></div>
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="block text-xs font-bold uppercase text-slate-500 mb-1">Fecha</label><input id="doc-fecha" type="date" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-sm"></div>
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-500 mb-1">IVA</label>
+              <select id="doc-iva" data-change="recalcularEditor" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-sm font-semibold">
+                <option value="21">21% General</option><option value="10">10% Reforma</option><option value="4">4% Superreducido</option><option value="0">0% Exento</option>
+              </select>
+            </div>
+          </div>
+          <div id="wrapper-doc-estado" class="pt-1">
+            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Estado del Presupuesto</label>
+            <select id="doc-estado" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-sm font-bold text-slate-800">
+              <option value="Borrador">Borrador</option>
+              <option value="Enviado">Enviado</option>
+              <option value="Aceptado">Aceptado</option>
+              <option value="Rechazado">Rechazado</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl border border-slate-200">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-xs font-extrabold uppercase text-slate-600">Partidas</h3>
+            <button data-click="agregarLineaEditor" class="px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-bold">+ Añadir Partida</button>
+          </div>
+          <div id="editor-lineas" class="space-y-3"></div>
+        </div>
+
+        <div class="bg-slate-900 text-white p-4 rounded-2xl space-y-1">
+          <div class="flex justify-between text-xs text-slate-300"><span>Base:</span><span id="ed-base">0,00 €</span></div>
+          <div class="flex justify-between text-xs text-slate-300"><span>IVA:</span><span id="ed-iva-cuota">0,00 €</span></div>
+          <div class="flex justify-between text-lg font-extrabold text-amber-400 pt-1 border-t border-slate-700"><span>TOTAL:</span><span id="ed-total">0,00 €</span></div>
+        </div>
+
+        <div class="space-y-2 pt-1">
+          <button data-click="guardarDocumento" data-click-args='[false]' class="w-full py-3.5 rounded-xl bg-slate-800 text-white font-bold text-sm">GUARDAR CAMBIOS</button>
+          <button data-click="guardarDocumento" data-click-args='["pdf"]' class="w-full py-3 rounded-xl bg-white border border-slate-300 text-slate-800 font-bold text-sm">👁️ VISTA PRELIMINAR / PDF A4</button>
+		  <button id="btn-convertir-proforma" data-click="convertirAProformaDesdeEditor" class="hidden w-full py-3.5 rounded-xl bg-blue-600 text-white font-bold text-sm">PASAR A FACTURA PROFORMA</button>
+          <button id="btn-emitir-verifactu" data-click="abrirModalVerifactu" class="hidden w-full py-4 rounded-xl bg-emerald-600 text-white font-extrabold text-sm shadow-md">🔒 EMITIR FACTURA OFICIAL VERI*FACTU</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODAL NUEVO CLIENTE -->
+    <div id="modal-nuevo-cliente" class="hidden fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3 shadow-2xl my-6 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between border-b pb-2">
+          <h3 class="text-base font-extrabold text-slate-900">Nuevo Cliente</h3>
+          <button data-click="cerrarModalNuevoCliente" class="text-slate-400 font-bold text-lg px-2">✕</button>
+        </div>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Nombre / Razón Social *</label>
+            <textarea id="mcli-nombre" rows="2" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm resize-y" placeholder="Nombre completo..."></textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">NIF / CIF *</label>
+            <input id="mcli-nif" type="text" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm uppercase" placeholder="B12345678">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Dirección</label>
+            <textarea id="mcli-direccion" rows="2" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm resize-y" placeholder="Calle, número..."></textarea>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-500 mb-1">CP *</label>
+              <input id="mcli-cp" type="text" maxlength="5" inputmode="numeric" pattern="[0-9]*" data-input="validarYBuscarCPModal" data-input-args='["$value"]' class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm font-bold" placeholder="41800">
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Población *</label>
+              <input id="mcli-poblacion" type="text" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm" placeholder="Sanlúcar la Mayor">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Teléfono Fijo</label>
+              <input id="mcli-telefono" type="text" inputmode="numeric" pattern="[0-9]*" data-input="soloNumeros" data-input-args='["$this"]' class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm" placeholder="954123456">
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Teléfono Móvil</label>
+              <input id="mcli-movil" type="text" inputmode="numeric" pattern="[0-9]*" data-input="soloNumeros" data-input-args='["$this"]' class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm" placeholder="600123456">
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Correo Electrónico (Email)</label>
+            <input id="mcli-email" type="email" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm" placeholder="cliente@email.com">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-3">
+          <button data-click="cerrarModalNuevoCliente" class="py-3 rounded-xl border border-slate-300 font-bold text-xs text-slate-700">CANCELAR</button>
+          <button data-click="guardarClienteDesdeModal" class="py-3 rounded-xl bg-slate-900 text-white font-bold text-xs">GUARDAR CLIENTE</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GASTOS -->
+    <section id="view-gastos" class="hidden flex-1 flex flex-col p-5">
+      <div class="flex items-center gap-3 mb-4">
+        <button data-click="irA" data-click-args='["menu"]' class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-bold text-lg">‹</button>
+        <h2 class="text-xl font-extrabold text-slate-900 flex-1">GASTOS / COMPRAS</h2>
+      </div>
+      <button data-click="abrirFormGasto" class="w-full py-3.5 rounded-xl bg-rose-700 text-white font-bold text-sm mb-3">+ REGISTRAR GASTO</button>
+      <input id="buscar-gasto" data-input="renderGastos" type="text" placeholder="Buscar gasto..." class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-sm mb-4">
+      <div id="lista-gastos" class="space-y-3 pb-10"></div>
+    </section>
+
+    <!-- FORMULARIO GASTO -->
+    <section id="view-gasto-form" class="hidden flex-1 flex flex-col p-5">
+      <div class="flex items-center gap-3 mb-4">
+        <button data-click="irA" data-click-args='["gastos"]' class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-bold text-lg">‹</button>
+        <h2 class="text-lg font-extrabold text-slate-900">REGISTRO DE GASTO</h2>
+      </div>
+      <div class="space-y-3 bg-white p-4 rounded-2xl border border-slate-200 pb-10">
+        <input type="hidden" id="gas-id">
+        <div>
+          <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Proveedor *</label>
+          <div class="flex gap-2">
+            <select id="gas-proveedor-select" data-change="cambiarSelectorProveedorGasto" data-change-args='["$value"]' class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm font-semibold">
+              <!-- Se rellena dinámicamente -->
+            </select>
+            <button type="button" data-click="abrirModalNuevoProveedorGasto" class="px-3.5 py-2.5 rounded-xl bg-slate-900 text-white font-bold text-xs shrink-0">+ Nuevo</button>
+          </div>
+          <input id="gas-proveedor" type="hidden">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div><label class="block text-xs font-bold uppercase text-slate-500 mb-1">NIF Proveedor</label><input id="gas-nif" type="text" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm uppercase"></div>
+          <div><label class="block text-xs font-bold uppercase text-slate-500 mb-1">Nº Factura</label><input id="gas-num" type="text" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"></div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div><label class="block text-xs font-bold uppercase text-slate-500 mb-1">Fecha</label><input id="gas-fecha" type="date" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"></div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Categoría</label>
+            <select id="gas-categoria" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm">
+              <option value="Materiales de obra">Materiales de obra</option><option value="Subcontratas">Subcontratas</option><option value="Combustible / Vehículo">Combustible / Vehículo</option><option value="Otros gastos">Otros gastos</option>
+            </select>
+          </div>
+        </div>
+        <div><label class="block text-xs font-bold uppercase text-slate-500 mb-1">Concepto</label><input id="gas-concepto" type="text" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"></div>
+        <div class="grid grid-cols-2 gap-2">
+          <div><label class="block text-xs font-bold uppercase text-slate-500 mb-1">Base (€) *</label><input id="gas-base" type="number" step="0.01" data-input="recalcularGasto" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-bold"></div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">IVA</label>
+            <select id="gas-iva" data-change="recalcularGasto" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm">
+              <option value="21">21%</option><option value="10">10%</option><option value="4">4%</option><option value="0">0%</option>
+            </select>
+          </div>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-100 flex justify-between items-center">
+          <span class="text-xs font-bold text-slate-600">TOTAL:</span><span id="gas-total-preview" class="text-base font-extrabold text-slate-900">0,00 €</span>
+        </div>
+        <div class="pt-2 space-y-2">
+          <button data-click="guardarGasto" class="w-full py-3.5 rounded-xl bg-rose-700 text-white font-bold text-sm">GUARDAR GASTO</button>
+          <button data-click="irA" data-click-args='["gastos"]' class="w-full py-3 rounded-xl bg-white border border-slate-300 text-slate-700 font-bold text-sm">CANCELAR</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TARIFARIO -->
+    <section id="view-tarifario" class="hidden flex-1 flex flex-col p-5">
+      <div class="flex items-center gap-3 mb-4">
+        <button data-click="irA" data-click-args='["menu"]' class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-bold text-lg">‹</button>
+        <h2 class="text-xl font-extrabold text-slate-900 flex-1">TARIFARIO</h2>
+      </div>
+      <button data-click="abrirFormPartidaTarifario" class="w-full py-3.5 rounded-xl bg-slate-900 text-white font-bold text-sm mb-3">+ NUEVA PARTIDA / PRECIO</button>
+      <div class="grid grid-cols-2 gap-2 mb-3">
+        <button data-click="exportarTarifarioCSV" class="py-2.5 px-3 rounded-xl bg-white border border-slate-300 text-slate-800 font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm">
+          <span>📥</span> EXPORTAR CSV
+        </button>
+        <button data-click="abrirModalImportarTarifario" class="py-2.5 px-3 rounded-xl bg-indigo-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm">
+          <span>📤</span> IMPORTAR EXCEL / CSV
+        </button>
+      </div>
+      <div class="flex gap-2 mb-4">
+        <input id="buscar-tarifario" data-input="renderTarifario" type="text" placeholder="Buscar partida..." class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm">
+        <select id="filtro-capitulo" data-change="renderTarifario" class="px-3 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-700 w-36">
+          <option value="">Todos capítulos</option>
+        </select>
+      </div>
+      <div id="lista-tarifario" class="space-y-2.5 pb-10"></div>
+    </section>
+
+    <!-- FORMULARIO TARIFARIO -->
+    <section id="view-tarifario-form" class="hidden flex-1 flex flex-col p-5">
+      <div class="flex items-center gap-3 mb-4">
+        <button data-click="irA" data-click-args='["tarifario"]' class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-bold text-lg">‹</button>
+        <h2 class="text-lg font-extrabold text-slate-900">PARTIDA DE TARIFARIO</h2>
+      </div>
+      <div class="space-y-3 bg-white p-4 rounded-2xl border border-slate-200 pb-10">
+        <input type="hidden" id="tar-id">
+        <div><label class="block text-xs font-bold uppercase text-slate-500 mb-1">Capítulo *</label><input id="tar-capitulo" type="text" placeholder="Ej: Albañilería, Revestimientos" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"></div>
+        <div><label class="block text-xs font-bold uppercase text-slate-500 mb-1">Concepto / Descripción *</label><textarea id="tar-concepto" rows="2" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm"></textarea></div>
+        <div class="grid grid-cols-2 gap-2">
+          <div><label class="block text-xs font-bold uppercase text-slate-500 mb-1">Unidad</label><input id="tar-unidad" type="text" value="m²" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"></div>
+          <div><label class="block text-xs font-bold uppercase text-slate-500 mb-1">Precio Unitario (€) *</label><input id="tar-precio" type="number" step="0.01" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-bold"></div>
+        </div>
+        <div class="pt-2 space-y-2">
+          <button data-click="guardarPartidaTarifario" class="w-full py-3.5 rounded-xl bg-slate-900 text-white font-bold text-sm">GUARDAR PARTIDA</button>
+          <button data-click="irA" data-click-args='["tarifario"]' class="w-full py-3 rounded-xl bg-white border border-slate-300 text-slate-700 font-bold text-sm">CANCELAR</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ESTADO FISCAL -->
+    <section id="view-estado" class="hidden flex-1 flex flex-col p-5">
+      <div class="flex items-center gap-3 mb-4">
+        <button data-click="irA" data-click-args='["menu"]' class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-bold text-lg">‹</button>
+        <h2 class="text-xl font-extrabold text-slate-900 flex-1">MI ESTADO FISCAL</h2>
+      </div>
+      <div class="space-y-4 pb-10">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 flex gap-2">
+          <select id="est-trimestre" data-change="renderEstado" class="flex-1 px-3 py-2.5 rounded-xl border border-slate-300 font-bold text-sm">
+            <option value="1">1º Trimestre</option><option value="2">2º Trimestre</option><option value="3">3º Trimestre</option><option value="4" selected>4º Trimestre</option><option value="ALL">Año Completo</option>
+          </select>
+          <select id="est-anio" data-change="renderEstado" class="w-28 px-3 py-2.5 rounded-xl border border-slate-300 font-bold text-sm">
+            <option value="2026" selected>2026</option><option value="2025">2025</option>
+          </select>
+        </div>
+        <div class="bg-slate-900 text-white p-5 rounded-2xl space-y-3 shadow-md">
+          <div class="text-xs font-bold uppercase tracking-wider text-amber-400">Liquidación IVA (Modelo 303)</div>
+          <div class="flex justify-between text-sm"><span class="text-slate-300">Ventas (Base):</span><span id="est-ventas-base" class="font-bold">0,00 €</span></div>
+          <div class="flex justify-between text-sm"><span class="text-slate-300">(+) IVA Repercutido:</span><span id="est-iva-rep" class="font-bold text-emerald-400">0,00 €</span></div>
+          <div class="flex justify-between text-sm"><span class="text-slate-300">(-) IVA Soportado:</span><span id="est-iva-sop" class="font-bold text-rose-400">0,00 €</span></div>
+          <div class="pt-3 border-t border-slate-700 flex justify-between items-center"><span class="text-sm font-extrabold">RESULTADO IVA:</span><span id="est-iva-neto" class="text-xl font-extrabold text-amber-400">0,00 €</span></div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2.5">
+          <h3 class="text-xs font-extrabold uppercase text-slate-600">Exportación Gestoría</h3>
+          <button data-click="exportarCSVFacturas" class="w-full py-3 rounded-xl bg-emerald-700 text-white font-bold text-xs">📥 LIBRO FACTURAS EMITIDAS Y RECTIFICATIVAS (.CSV)</button>
+          <button data-click="exportarCSVGastos" class="w-full py-3 rounded-xl bg-rose-700 text-white font-bold text-xs">📥 LIBRO GASTOS (.CSV)</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- MANUAL DE AYUDA Y GUÍA RÁPIDA -->
+    <section id="view-ayuda" class="hidden flex-1 flex flex-col p-4 sm:p-5 space-y-4 pb-16">
+      <div class="flex items-center gap-3">
+        <button data-click="irA" data-click-args='["menu"]' class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-bold text-lg shadow-sm">‹</button>
+        <h2 class="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">MANUAL DE AYUDA Y GUÍA RÁPIDA</h2>
+      </div>
+
+      <div class="space-y-4 text-xs text-slate-700">
+        <!-- Tarjeta 1 -->
+        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+          <div class="font-extrabold text-slate-900 text-sm flex items-center gap-2 text-amber-700">
+            <span>🚀</span> 1. Primeros Pasos y Acceso
+          </div>
+          <p class="leading-relaxed text-slate-600">
+            ConstruFactu es una aplicación <strong>Local-First</strong> (funciona de forma privada en tu dispositivo sin depender de servidores externos). Puedes entrar con tu email de acceso y contraseña definidos en el menú de <strong>⚙️ Ajustes</strong>.
+          </p>
+        </div>
+
+        <!-- Tarjeta 2 -->
+        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+          <div class="font-extrabold text-slate-900 text-sm flex items-center gap-2 text-blue-700">
+            <span>📋</span> 2. Presupuestos, Albaranes y Facturas Proforma
+          </div>
+          <p class="leading-relaxed text-slate-600">
+            Crea valoraciones de obra detalladas con partidas del tarifario. Desde los albaranes, puedes agrupar varios albaranes de una misma obra y unificarlos automáticamente en una factura proforma o oficial con un solo toque.
+          </p>
+        </div>
+
+        <!-- Tarjeta 3 -->
+        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+          <div class="font-extrabold text-slate-900 text-sm flex items-center gap-2 text-emerald-700">
+            <span>🔒</span> 3. Emisión de Facturas Oficiales Veri*factu
+          </div>
+          <p class="leading-relaxed text-slate-600">
+            Al emitir una factura oficial, la aplicación genera una huella criptográfica encadenada (SHA-256) conforme a los requisitos antifraude (Veri*factu / Ley Antifraude). Las facturas oficiales quedan bloqueadas e immutables, permitiendo generar su PDF oficial o enviarlo a tu gestoría en formato CSV.
+          </p>
+        </div>
+
+        <!-- Tarjeta 4 -->
+        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+          <div class="font-extrabold text-slate-900 text-sm flex items-center gap-2 text-indigo-700">
+            <span>📐</span> 4. Tarifario y Carga de Precios Excel
+          </div>
+          <p class="leading-relaxed text-slate-600">
+            En la sección <strong>Tarifario</strong> puedes gestionar tu base de precios por capítulos (Albañilería, Revestimientos, Fontanería...). Puedes descargar la plantilla Excel de ejemplo o importar tus tarifas masivamente desde cualquier archivo <strong>.xlsx</strong> o <strong>.csv</strong>.
+          </p>
+        </div>
+
+        <!-- Tarjeta 5 -->
+        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+          <div class="font-extrabold text-slate-900 text-sm flex items-center gap-2 text-rose-700">
+            <span>☁️</span> 5. Copias de Seguridad y Nube Móvil
+          </div>
+          <p class="leading-relaxed text-slate-600">
+            Tus datos están seguros en tu navegador. Desde <strong>⚙️ Ajustes</strong> puedes exportar una copia de seguridad en formato <strong>.JSON</strong> en cualquier momento para guardarla en iCloud Drive o Google Drive y restaurarla en cualquier otro dispositivo.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONFIGURACIÓN: AJUSTES -->
+    <section id="view-config" class="hidden flex-1 flex flex-col p-4 sm:p-5 space-y-4 pb-12">
+      <div class="flex items-center gap-3">
+        <button data-click="irA" data-click-args='["menu"]' class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-bold text-lg shadow-sm">‹</button>
+        <h2 class="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">AJUSTES</h2>
+      </div>
+
+      <!-- 1. DATOS DE LA EMPRESA -->
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <div class="text-xs font-extrabold uppercase tracking-wider text-slate-800 border-b pb-2 flex items-center gap-2">
+          <span>🏢</span> Datos Fiscales y Acceso
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Logotipo Empresa</label>
+          <div class="flex items-center gap-3">
+            <input type="file" id="cfg-logo-file" accept="image/*" data-change="cargarLogoEmpresa" data-change-args='["$this"]' class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200">
+          </div>
+        </div>
+        <div><label class="block text-xs font-bold text-slate-600 mb-1">Nombre / Razón Social</label><input id="cfg-nombre" type="text" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold"></div>
+        <div class="grid grid-cols-2 gap-2">
+          <div><label class="block text-xs font-bold text-slate-600 mb-1">NIF / CIF</label><input id="cfg-nif" type="text" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm uppercase font-semibold"></div>
+          <div><label class="block text-xs font-bold text-slate-600 mb-1">Serie Facturas</label><input id="cfg-serie" type="text" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm uppercase font-semibold"></div>
+        </div>
+        <div><label class="block text-xs font-bold text-slate-600 mb-1">Dirección Fiscal</label><input id="cfg-direccion" type="text" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"></div>
+        <div><label class="block text-xs font-bold text-slate-600 mb-1">IBAN Bancario (para facturas)</label><input id="cfg-iban" type="text" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm uppercase"></div>
+        <div><label class="block text-xs font-bold text-slate-600 mb-1">Email / Usuario de Acceso</label><input id="cfg-email" type="email" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold"></div>
+        <div class="grid grid-cols-2 gap-2">
+          <div><label class="block text-xs font-bold text-slate-600 mb-1">PIN actual (solo si lo cambias)</label><input id="cfg-pin-actual" type="password" autocomplete="current-password" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"></div>
+          <div><label class="block text-xs font-bold text-slate-600 mb-1">PIN nuevo</label><input id="cfg-pin-nuevo" type="password" autocomplete="new-password" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"></div>
+        </div>
+        <button data-click="guardarConfigEmpresa" class="w-full py-3.5 rounded-xl bg-slate-900 text-white font-bold text-sm shadow-md">GUARDAR DATOS DE EMPRESA</button>
+      </div>
+
+      <!-- 2. COPIA DE SEGURIDAD -->
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <div class="flex justify-between items-center border-b pb-2">
+          <div class="text-xs font-extrabold uppercase tracking-wider text-slate-800 flex items-center gap-2">
+            <span>☁️</span> Copia de Seguridad
+          </div>
+          <span class="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Seguro Local</span>
+        </div>
+        <p class="text-xs text-slate-500">Envía tu archivo de respaldo (.json) por correo a ti mismo o a tu gestoría, o descárgalo en el dispositivo.</p>
+        <button data-click="enviarCopiaSeguridadEmail" class="w-full py-3 rounded-xl bg-blue-600 text-white font-bold text-xs shadow-sm flex items-center justify-center gap-2">
+          📩 ENVIAR COPIA DE SEGURIDAD POR EMAIL
+        </button>
+        <button data-click="descargarBackupJSON" class="w-full py-3 rounded-xl bg-white border border-slate-300 text-slate-800 font-bold text-xs flex items-center justify-center gap-2">
+          📥 DESCARGAR ARCHIVO (.JSON) EN DISPOSITIVO
+        </button>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">Frecuencia de Recordatorio</label>
+          <select id="cfg-frecuencia" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-xs font-bold">
+            <option value="7">Avisar cada 7 días</option>
+            <option value="15">Avisar cada 15 días</option>
+            <option value="30">Avisar cada 30 días</option>
+            <option value="0">Desactivado</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">Restaurar desde Archivo JSON</label>
+          <input type="file" id="cfg-file-restore" accept=".json,.txt,application/json,text/plain" data-change="restaurarDesdeArchivoJSON" data-change-args='["$this"]' class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700">
+        </div>
+      </div>
+
+      <!-- 3. SUSCRIPCIÓN Y LICENCIA -->
+      <div id="cfg-licencia-card" class="bg-amber-50/70 p-4 sm:p-5 rounded-2xl border-2 border-amber-300 shadow-sm space-y-3">
+        <div class="flex justify-between items-center">
+          <div class="text-xs font-extrabold uppercase tracking-wider text-amber-900 flex items-center gap-2">
+            <span>🔑</span> Suscripción y Licencia
+          </div>
+          <span id="cfg-badge-licencia" class="text-[10px] font-extrabold bg-amber-200 text-amber-900 px-2 py-0.5 rounded shadow-sm">PRUEBA 15 DÍAS</span>
+        </div>
+        <p id="cfg-desc-licencia" class="text-xs text-amber-800">Te quedan <strong>15 días</strong> de prueba gratuita. Introduce tu clave de suscripción PRO para activar.</p>
+        <div class="flex gap-2">
+          <input id="cfg-licencia-input" type="text" placeholder="CF-PRO-2026-XXXX" class="flex-1 px-3 py-2.5 rounded-xl border border-amber-300 bg-white text-xs font-bold uppercase">
+          <button data-click="activarLicencia" class="px-4 py-2.5 rounded-xl bg-slate-900 text-amber-400 font-extrabold text-xs shadow-md">ACTIVAR</button>
+        </div>
+      </div>
+
+      <!-- 4. BORRAR DATOS (EN PRODUCCIÓN) Y CONTROL DE SESIÓN -->
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <div class="text-[11px] font-extrabold text-rose-700 uppercase">Zona de Producción / Borrado</div>
+        <p class="text-[11px] text-slate-500">Elimina los datos de demostración o vacía las tablas de trabajo introduciendo tu Palabra Maestra.</p>
+        <button data-click="verificarIntegridadVerifactu" class="w-full py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 font-extrabold text-xs">🔗 Verificar integridad Veri*factu</button>
+        <button data-click="limpiarDatosDemostraciónSeguro" class="w-full py-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 font-extrabold text-xs">🗑️ Borrar datos</button>
+        <button data-click="cerrarSesion" class="w-full py-2.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 font-extrabold text-xs">Cerrar Sesión</button>
+      </div>
+
+      <!-- 5. VERSIÓN Y ACTUALIZACIONES -->
+      <div class="bg-slate-900 text-white p-4 sm:p-5 rounded-2xl space-y-3 shadow-md">
+        <div class="flex justify-between items-center">
+          <div>
+            <div class="text-[10px] font-bold tracking-widest uppercase text-amber-400">ConstruFactu · Control de Versión</div>
+            <div class="text-xs font-extrabold mt-0.5">Versión Instalada: v0.9.45 · Compilación 2026-11-12</div>
+          </div>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">OFICIAL</span>
+        </div>
+        <p class="text-[11px] text-slate-300 leading-relaxed">Incluye módulo Tarifario con capítulos, importación Excel/CSV, hojas A4 y Veri*factu local.</p>
+        <button data-click="buscarActualizaciones" class="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-400 font-extrabold text-xs flex items-center justify-center gap-2 transition">
+          🔄 BUSCAR ACTUALIZACIONES AHORA
+        </button>
+      </div>
+    </section>
+
+    <!-- MODAL IMPORTAR CLIENTES -->
+    <div id="modal-importar-clientes" class="hidden fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl my-6 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between border-b pb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">📥</span>
+            <h3 class="text-base font-extrabold text-slate-900">Importar Clientes (Excel / CSV)</h3>
+          </div>
+          <button data-click="cerrarModalImportarClientes" class="text-slate-400 font-bold text-lg px-2">✕</button>
+        </div>
+        
+        <div class="bg-emerald-50/70 p-4 rounded-xl border border-emerald-200 space-y-3 text-xs text-slate-700">
+          <div class="font-extrabold uppercase text-emerald-900 flex items-center gap-1.5">
+            <span>📋</span> Estructura requerida del archivo:
+          </div>
+          <p class="text-slate-600 leading-relaxed">
+            El archivo <strong>.xlsx</strong>, <strong>.xls</strong> o <strong>.csv</strong> debe tener en la <strong>fila 1</strong> estas columnas (en cualquier orden):
+          </p>
+          <ul class="space-y-1 pl-1 text-[11px] text-slate-700">
+            <li>• <strong>Nombre</strong> <em>(obligatorio)</em>: Razón social o nombre completo</li>
+            <li>• <strong>NIF</strong> <em>(obligatorio)</em>: NIF o CIF</li>
+            <li>• <strong>Direccion</strong> <em>(opcional)</em>: Calle y número</li>
+            <li>• <strong>CP</strong> <em>(opcional)</em>: Código postal (5 dígitos)</li>
+            <li>• <strong>Poblacion</strong> <em>(opcional)</em>: Ciudad / Municipio</li>
+            <li>• <strong>Telefono</strong> <em>(opcional)</em>: Teléfono de contacto</li>
+            <li>• <strong>Movil</strong> <em>(opcional)</em>: Móvil</li>
+            <li>• <strong>Email</strong> <em>(opcional)</em>: Correo electrónico</li>
+            <li>• <strong>Observaciones</strong> <em>(opcional)</em>: Notas o forma de pago</li>
+          </ul>
+          <button data-click="descargarPlantillaClientesXLSX" class="w-full py-2.5 rounded-lg bg-white border border-emerald-300 text-emerald-800 font-extrabold text-xs flex items-center justify-center gap-2 shadow-sm hover:bg-emerald-50 transition">
+            <span>📄</span> Descargar Plantilla Excel (.xlsx) de Ejemplo
+          </button>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Si un cliente ya existe (mismo NIF):</label>
+          <select id="import-cli-duplicados-strategy" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-xs font-bold text-slate-800">
+            <option value="actualizar">Actualizar sus datos y observaciones</option>
+            <option value="omitir">Omitir (no importar si ya existe)</option>
+            <option value="duplicar">Importar como nuevo (permitir duplicados)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Seleccionar archivo (.xlsx, .xls, .csv)</label>
+          <div class="flex items-center gap-2">
+            <input type="file" id="file-import-clientes" accept=".xlsx, .xls, .csv" data-change="actualizarNombreArchivoClientesImportado" data-change-args='["$this"]' class="w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-900 file:text-white hover:file:bg-slate-800">
+          </div>
+          <p id="txt-file-name-cli-info" class="text-[11px] text-slate-400 mt-1">Ningún archivo seleccionado</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 pt-2">
+          <button data-click="cerrarModalImportarClientes" class="py-3 rounded-xl border border-slate-300 font-bold text-xs text-slate-700">CANCELAR</button>
+          <button data-click="ejecutarImportacionClientes" class="py-3 rounded-xl bg-emerald-600 text-white font-bold text-xs shadow-sm">SUBIR E IMPORTAR</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- MODAL IMPORTAR TARIFARIO -->
+    <div id="modal-importar-tarifario" class="hidden fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl my-6 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between border-b pb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">📥</span>
+            <h3 class="text-base font-extrabold text-slate-900">Importar Tarifas (Excel / CSV)</h3>
+          </div>
+          <button data-click="cerrarModalImportarTarifario" class="text-slate-400 font-bold text-lg px-2">✕</button>
+        </div>
+        
+        <div class="bg-indigo-50/70 p-4 rounded-xl border border-indigo-200 space-y-3 text-xs text-slate-700">
+          <div class="font-extrabold uppercase text-indigo-900 flex items-center gap-1.5">
+            <span>📋</span> Estructura requerida del archivo:
+          </div>
+          <p class="text-slate-600 leading-relaxed">
+            El archivo <strong>.xlsx</strong>, <strong>.xls</strong> o <strong>.csv</strong> debe tener en la <strong>fila 1</strong> estas columnas (en cualquier orden):
+          </p>
+          <ul class="space-y-1 pl-1 text-[11px] text-slate-700">
+            <li>• <strong>Capitulo</strong> <em>(opcional)</em>: Ej. Albañilería, Fontanería</li>
+            <li>• <strong>Concepto</strong> <em>(obligatorio)</em>: Descripción de la partida</li>
+            <li>• <strong>Unidad</strong> <em>(obligatorio)</em>: Ej. ud, m², ml, h, pa</li>
+            <li>• <strong>Precio</strong> <em>(obligatorio)</em>: Importe sin IVA (ej. 32,50)</li>
+          </ul>
+          <button data-click="descargarPlantillaTarifarioXLSX" class="w-full py-2.5 rounded-lg bg-white border border-indigo-300 text-indigo-800 font-extrabold text-xs flex items-center justify-center gap-2 shadow-sm hover:bg-indigo-50 transition">
+            <span>📄</span> Descargar Plantilla Excel (.xlsx) de Ejemplo
+          </button>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Si una partida ya existe en el tarifario:</label>
+          <select id="import-duplicados-strategy" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-xs font-bold text-slate-800">
+            <option value="actualizar">Actualizar su precio, unidad y capítulo</option>
+            <option value="omitir">Omitir (no importar si ya existe)</option>
+            <option value="duplicar">Importar como nueva (permitir duplicadas)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Seleccionar archivo (.xlsx, .xls, .csv)</label>
+          <div class="flex items-center gap-2">
+            <input type="file" id="file-import-tarifas" accept=".xlsx, .xls, .csv" data-change="actualizarNombreArchivoImportado" data-change-args='["$this"]' class="w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-900 file:text-white hover:file:bg-slate-800">
+          </div>
+          <p id="txt-file-name-info" class="text-[11px] text-slate-400 mt-1">Ningún archivo seleccionado</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 pt-2">
+          <button data-click="cerrarModalImportarTarifario" class="py-3 rounded-xl border border-slate-300 font-bold text-xs text-slate-700">CANCELAR</button>
+          <button data-click="ejecutarImportacionTarifas" class="py-3 rounded-xl bg-emerald-600 text-white font-bold text-xs shadow-sm">SUBIR E IMPORTAR</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- MODAL NUEVO PROVEEDOR GASTO -->
+    <div id="modal-nuevo-proveedor" class="hidden fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-3 shadow-2xl">
+        <div class="flex items-center justify-between border-b pb-2">
+          <h3 class="text-base font-extrabold text-slate-900">Nuevo Proveedor</h3>
+          <button data-click="cerrarModalNuevoProveedorGasto" class="text-slate-400 font-bold text-lg px-2">✕</button>
+        </div>
+        <div class="space-y-3">
+          <div><label class="block text-xs font-bold uppercase text-slate-500 mb-1">Nombre / Razón Social *</label><input id="mprov-nombre" type="text" class="w-full px-3 py-2.5 rounded-xl border text-sm font-semibold"></div>
+          <div><label class="block text-xs font-bold uppercase text-slate-500 mb-1">NIF / CIF</label><input id="mprov-nif" type="text" class="w-full px-3 py-2.5 rounded-xl border text-sm uppercase"></div>
+          <div><label class="block text-xs font-bold uppercase text-slate-500 mb-1">Teléfono</label><input id="mprov-tel" type="text" class="w-full px-3 py-2.5 rounded-xl border text-sm"></div>
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-2">
+          <button data-click="cerrarModalNuevoProveedorGasto" class="py-3 rounded-xl border font-bold text-xs">CANCELAR</button>
+          <button data-click="guardarProveedorGastoDesdeModal" class="py-3 rounded-xl bg-slate-900 text-white font-bold text-xs">GUARDAR</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL VERI*FACTU -->
+    <div id="modal-verifactu" class="hidden fixed inset-0 bg-slate-900/75 z-50 flex items-center justify-center p-5">
+      <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-2xl">
+        <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-2xl mx-auto">⚠️</div>
+        <h3 id="modal-verifactu-titulo" class="text-lg font-extrabold text-center text-slate-900">Emitir Factura Oficial Veri*factu</h3>
+        <p class="text-xs text-slate-600 text-center">Al confirmar, pasará a Factura Oficial definitiva con huella SHA-256 encadenada.</p>
+        <div class="grid grid-cols-2 gap-2 pt-2">
+          <button data-click="cerrarModalVerifactu" class="py-3 rounded-xl border border-slate-300 font-bold text-xs">CANCELAR</button>
+          <button data-click="confirmarEmisionVerifactu" class="py-3 rounded-xl bg-emerald-600 text-white font-extrabold text-xs">CONFIRMAR Y EMITIR</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA PDF A4 -->
+    <section id="view-pdf" class="hidden fixed inset-0 bg-slate-900/95 z-40 overflow-y-auto p-3 flex flex-col">
+      <div class="w-full max-w-2xl mx-auto flex justify-between items-center mb-3 no-print sticky top-0 z-50 bg-slate-900/95 py-2">
+        <button data-click="cerrarVistaPDF" class="px-4 py-2.5 rounded-xl bg-white text-slate-900 font-bold text-xs">‹ VOLVER</button>
+        <button id="btn-descargar-pdf" data-click="descargarArchivoPDFA4" class="px-4 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-extrabold text-xs">📥 GUARDAR PDF (A4)</button>
+      </div>
+      <div class="w-full overflow-x-auto pb-8 flex justify-center">
+        <div id="print-area" class="hoja-a4 shadow-2xl"></div>
+      </div>
+    </section>
+
+  </div>
+
+<script src="js/app.js"></script>
+
+</body>
+</html>
