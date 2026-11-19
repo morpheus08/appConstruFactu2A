@@ -533,6 +533,22 @@
 
     function buscarActualizaciones() { avisar('Versión actual (v0.9.45) al día.'); }
 
+    async function descargarGestoriaMesActual() {
+      try {
+        const hoy = new Date();
+        const año = hoy.getFullYear();
+        const mes = hoy.getMonth();
+        const primerDia = `${año}-${String(mes + 1).padStart(2, '0')}-01`;
+        const ultimoDia = new Date(año, mes + 1, 0);
+        const ultimoDiaTexto = `${año}-${String(mes + 1).padStart(2, '0')}-${String(ultimoDia.getDate()).padStart(2, '0')}`;
+
+        await ConstruFactu.Gestor.exportarGestor(primerDia, ultimoDiaTexto);
+        mostrarAviso('ZIP generado. Revisa tus descargas.');
+      } catch (error) {
+        mostrarAviso(error && error.message ? error.message : 'No se pudo generar el archivo para Gestoría.', 'error');
+      }
+    }
+
     window.addEventListener('DOMContentLoaded', async () => {
       await ConstruFactu.Store.init();
       
