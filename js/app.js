@@ -219,6 +219,41 @@
         botones: [{ id: 'cancelar', texto: 'Cancelar', estilo: 'neutro', accion: c => c(null) },
                   { id: 'aceptar', texto: opc.aceptar || 'Aceptar', estilo: opc.peligro ? 'peligro' : 'primario', accion: (c, campo) => c(campo.value) }] });
     }
+    function pedirOpcionesBorrado() {
+      const caja = Dialogo._el('div', 'space-y-3');
+      const crearOpcion = (id, texto, marcada) => {
+        const lab = Dialogo._el('label', 'flex items-start gap-2 text-sm text-slate-700 cursor-pointer');
+        const chk = Dialogo._el('input', 'mt-0.5');
+        chk.type = 'checkbox';
+        chk.id = id;
+        chk.checked = marcada;
+        lab.appendChild(chk);
+        lab.appendChild(Dialogo._el('span', null, texto));
+        caja.appendChild(lab);
+        return chk;
+      };
+      const chkPresupuestos = crearOpcion('chk-presupuestos', 'Borrar Presupuestos y Albaranes', true);
+      const chkGastos = crearOpcion('chk-gastos', 'Borrar Gastos', true);
+      const chkClientes = crearOpcion('chk-clientes', 'Borrar Clientes y Proveedores', false);
+      const chkTarifario = crearOpcion('chk-tarifario', 'Borrar Tarifario (Catálogo de precios)', false);
+      return Dialogo._abrir({
+        titulo: 'Limpieza de datos',
+        mensaje: 'Selecciona qué quieres borrar. Las facturas oficiales NUNCA se borran (obligación legal).',
+        tipo: 'aviso',
+        extra: { nodo: caja },
+        principal: 'continuar',
+        alEscapar: c => c(null),
+        botones: [
+          { id: 'cancelar', texto: 'Cancelar', estilo: 'neutro', accion: c => c(null) },
+          { id: 'continuar', texto: 'Continuar', estilo: 'primario', accion: c => c({
+            presupuestos: chkPresupuestos.checked,
+            gastos: chkGastos.checked,
+            clientes: chkClientes.checked,
+            tarifario: chkTarifario.checked
+          }) }
+        ]
+      });
+    }
     function mostrarClaveRecuperacion(clave) {                               // no se puede cerrar sin confirmar que se ha guardado
       const caja = Dialogo._el('div', 'space-y-3');
       const k = Dialogo._el('div', 'font-mono text-base font-extrabold tracking-wider text-center bg-slate-50 border border-slate-200 rounded-xl p-3 select-all break-all', clave);
@@ -451,27 +486,102 @@
     }
 
     async function limpiarDatosDemostraciónSeguro() {
-      const masterIngresado = (await pedirTexto('⚠️ ATENCIÓN: Estás en entorno de producción.\n\nSe recomienda encarecidamente hacer una copia de seguridad antes de borrar datos.\n\nIntroduce tu PIN para confirmar el borrado:', { tipo: 'password', aceptar: 'Borrar datos', peligro: true, placeholder: 'Tu PIN' }));
-      if (!masterIngresado) return;
-      
-      if (await ConstruFactu.Auth.verificarPin(masterIngresado)) {
-        ConstruFactu.Store.state.clientes = [];
-        ConstruFactu.Store.state.documentos = ConstruFactu.Store.state.documentos.filter(d => d.estado === 'Oficial'); // las facturas oficiales no se pueden borrar
-        ConstruFactu.Store.state.gastos = [];
-        ConstruFactu.Store.state.catalogoPrecios = [];
-        await ConstruFactu.Store.save();
-        avisar('¡Datos borrados con éxito! Entorno limpio.');
-        irA('menu');
-      } else {
+      const opciones = await pedirOpcionesBorrado();
+      if (opciones === null) return;
+
+      const pin = await pedirTexto('Introduce tu PIN para confirmar la limpieza de datos', {
+        titulo: 'Seguridad',
+        tipo: 'password',
+        aceptar: 'Confirmar limpieza',
+        peligro: true,
+        placeholder: 'Tu PIN'
+      });
+      if (!pin) return;
+
+      if (!(await ConstruFactu.Auth.verificarPin(pin))) {
         avisar('PIN incorrecto. No se ha borrado ningún dato.');
+        return;
       }
+
+      const state = ConstruFactu.Store.state;
+      if (opciones.presupuestos) {
+        state.documentos = state.documentos.filter(d =>
+          d.tipo === 'factura' ||
+          d.tipo === 'rectificativa' ||
+          d.estado === 'Oficial'
+        );
+      }
+      if (opciones.gastos) state.gastos = [];
+      if (opciones.clientes) {
+        state.clientes = [];
+        state.proveedores = [];
+      }
+      if (opciones.tarifario) state.catalogoPrecios = [];
+
+      await ConstruFactu.Store.save();
+      avisar('Limpieza completada. Tus facturas oficiales siguen a salvo.');
+      irA('menu');
+    }
+
+    async function cerrarEmpresaYEmpezarDeCero() {
+      const descargar = await confirmar(
+        '⚠️ ATENCIÓN: Vas a cerrar la empresa actual.\n\nEs OBLIGATORIO que guardes una copia de seguridad. Hacienda te obliga a conservar tus facturas durante al menos 4 años.\n\n¿Quieres descargar tu copia de seguridad AHORA?',
+        { aceptar: 'Descargar copia', cancelar: 'Cancelar', peligro: true, titulo: 'Cierre de empresa' }
+      );
+      if (!descargar) return;
+      descargarBackupJSON();
+
+      const pin = await pedirTexto('Introduce tu PIN de administrador para autorizar el cierre de empresa', {
+        titulo: 'Seguridad',
+        tipo: 'password',
+        aceptar: 'Continuar',
+        peligro: true,
+        placeholder: 'Tu PIN'
+      });
+      if (!pin || !(await ConstruFactu.Auth.verificarPin(pin))) {
+        avisar('PIN incorrecto. No se ha cerrado la empresa.');
+        return;
+      }
+
+      const confirmacion = await pedirTexto('Escribe la palabra CERRAR para borrar todo y empezar de cero', {
+        titulo: 'Confirmación Final',
+        aceptar: 'Cerrar empresa',
+        peligro: true,
+        placeholder: 'CERRAR'
+      });
+      if (confirmacion !== 'CERRAR') {
+        avisar('La confirmación no coincide. No se ha cerrado la empresa.');
+        return;
+      }
+
+      ConstruFactu.Store.state = ConstruFactu.Store.clonarDefecto();
+      indexedDB.deleteDatabase(ConstruFactu.DB_NAME);
+      localStorage.clear();
+      window.location.reload();
     }
 
     function cerrarSesion() { irA('login'); }
 
+    function generarNombreBackup() {
+      const ahora = new Date();
+      const fecha = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`;
+      const hora = `${String(ahora.getHours()).padStart(2, '0')}-${String(ahora.getMinutes()).padStart(2, '0')}`;
+      const nombreEmpresa = String(ConstruFactu.Store.state.empresa.nombre || 'Empresa')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '') || 'Empresa';
+      return `ConstruFactu_Backup_${nombreEmpresa}_${fecha}_${hora}.json`;
+    }
+
     async function enviarCopiaSeguridadEmail() {
-      const fecha = new Date().toISOString().slice(0, 10), nombre = `ConstruFactu_Backup_${fecha}.json`;
+      const fecha = new Date().toISOString().slice(0, 10), nombre = generarNombreBackup();
       const json = JSON.stringify(ConstruFactu.Store.state, null, 2);
+      const continuar = await confirmar(
+        'Vamos a preparar tu copia de seguridad.\n\nEl navegador te pedirá dónde guardarla. Una vez descargada, puedes adjuntarla a un correo o guardarla en tu nube (Drive, OneDrive, etc.).',
+        { aceptar: 'Descargar ahora', cancelar: 'Cancelar' }
+      );
+      if (!continuar) return;
 
       // 1) Hoja de compartir del sistema, con el archivo ADJUNTO (móviles, tablets y algunos escritorios).
       //    Chrome/Android solo admite ciertos tipos de archivo: si .json no se permite, se comparte como .json.txt (se restaura igual).
@@ -488,25 +598,22 @@
       //    Se descarga la copia y se avisa con claridad de que el adjunto lo pone el usuario.
       const url = URL.createObjectURL(new Blob([json], { type: 'application/json' })), a = document.createElement('a');
       a.href = url; a.download = nombre; document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 2000);
-      const abrir = await confirmar(`✅ Copia descargada: ${nombre}\n\nTu navegador no permite adjuntar archivos automáticamente. Si abres el correo, adjunta tú ese archivo (está en tu carpeta de Descargas).`, { aceptar: 'Abrir correo', cancelar: 'Solo descargar' });
-      if (abrir) {
-        const para = ConstruFactu.Store.state.auth.email || '';
-        window.location.href = `mailto:${encodeURIComponent(para)}?subject=${encodeURIComponent('Copia de seguridad ConstruFactu - ' + fecha)}&body=${encodeURIComponent('Adjunto la copia de seguridad de ConstruFactu (' + nombre + ').')}`;
-      }
+      URL.revokeObjectURL(url);
     }
 
     function descargarBackupJSON() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(ConstruFactu.Store.state, null, 2));
       const a = document.createElement('a'); a.href = dataStr;
-      a.download = `ConstruFactu_Backup_${new Date().toISOString().split('T')[0]}.json`;
+      a.download = generarNombreBackup();
       document.body.appendChild(a); a.click(); a.remove();
       avisar('Copia de seguridad descargada con éxito en tu dispositivo.');
     }
 
     async function restaurarDesdeArchivoJSON(input) {
       if (input.files && input.files[0]) {
-        if (!(await confirmar('⚠️ ADVERTENCIA DE SEGURIDAD:\n\nRestaurar una copia de seguridad sobrescribirá todos los datos y documentos actuales de la aplicación.\n\n¿Deseas continuar con la restauración?', { aceptar: 'Restaurar', peligro: true }))) {
+        const confirmacion = await pedirTexto('⚠️ ADVERTENCIA DE SEGURIDAD:\n\nRestaurar una copia de seguridad sobrescribirá todos los datos y documentos actuales de la aplicación.\n\n¿Deseas continuar con la restauración?', { titulo: 'Confirmar restauración', aceptar: 'Restaurar', peligro: true, placeholder: 'Escribe RESTAURAR' });
+        if (confirmacion === null || String(confirmacion).toUpperCase() !== 'RESTAURAR') {
+          avisar('Debes escribir la palabra RESTAURAR exactamente para confirmar.');
           input.value = '';
           return;
         }
