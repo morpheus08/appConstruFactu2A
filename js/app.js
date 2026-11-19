@@ -399,6 +399,19 @@
       document.getElementById('cfg-iban').value = state.empresa.iban || '';
       ['cfg-pin-actual', 'cfg-pin-nuevo'].forEach(i => document.getElementById(i).value = '');
       document.getElementById('cfg-frecuencia').value = state.empresa.frecuenciaRecordatorio || '7';
+      const modoVerifactu = document.querySelector('[data-input="cambiarModoVerifactu"]');
+      if (modoVerifactu) modoVerifactu.value = state.empresa.modoVerifactu || 'no_verifactu';
+    }
+
+    async function cambiarModoVerifactu(e) {
+      const select = e && e.target
+        ? e.target
+        : document.querySelector('[data-input="cambiarModoVerifactu"]');
+      if (!select) return;
+
+      ConstruFactu.Store.state.empresa.modoVerifactu = select.value;
+      await ConstruFactu.Store.save();
+      mostrarAviso('Modo de facturación actualizado. A partir de ahora tus nuevas facturas se generarán en este modo.');
     }
 
     function cargarLogoEmpresa(input) {
