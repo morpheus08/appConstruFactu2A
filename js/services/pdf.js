@@ -275,7 +275,10 @@ function verPDFDocumento(id) {
       if (esOficial) {
         asegurar(32); yy += 2;
         pdf.setDrawColor(...C.claro); pdf.setLineWidth(0.4); pdf.setLineDashPattern([1.6, 1.6], 0); pdf.line(L, yy, R, yy); pdf.setLineDashPattern([], 0);
-        fuente('bold', 7.5); txt(C.ink); pdf.text('VERI*FACTU - SISTEMA INFORMÁTICO DE FACTURACIÓN', L, yy + 6);
+        const tituloSif = emp.modoVerifactu === 'no_verifactu'
+          ? 'SISTEMA DE FACTURACIÓN (NO VERIFICADO)'
+          : 'VERI*FACTU - SISTEMA INFORMÁTICO DE FACTURACIÓN';
+        fuente('bold', 7.5); txt(C.ink); pdf.text(tituloSif, L, yy + 6);
         fuente('normal', 7); txt(C.gris); pdf.text('Huella SHA-256:', L, yy + 11);
         pdf.setFont('courier', 'normal'); pdf.setFontSize(6); pdf.text(pdfTxt(d.hashVerifactu || ''), L + 20, yy + 11);
         fuente('normal', 7); txt(C.suave); pdf.text('Sede Electrónica AEAT - Verificable mediante código QR', L, yy + 15.5);
