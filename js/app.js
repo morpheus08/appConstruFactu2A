@@ -340,6 +340,7 @@
       if (!emp || !nif || !email || !pass) { avisar('Rellena todos los campos del registro.'); return; }
       try {
         const clave = await ConstruFactu.Auth.registrar(emp, nif, email, pass);
+        await ConstruFactu.Store.save();
         await mostrarClaveRecuperacion(clave);
         document.getElementById('login-user').value = email;
         document.getElementById('login-pass').value = '';
@@ -555,7 +556,12 @@
       }
 
       ConstruFactu.Store.state = ConstruFactu.Store.clonarDefecto();
-      indexedDB.deleteDatabase(ConstruFactu.DB_NAME);
+      await new Promise((resolve, reject) => {
+        const req = indexedDB.deleteDatabase(ConstruFactu.DB_NAME);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject();
+        req.onblocked = () => resolve();
+      });
       localStorage.clear();
       window.location.reload();
     }
@@ -669,8 +675,29 @@
       }
     }
 
+    function renderLogoEmpresaLogin() {
+      const contenedor = document.getElementById('login-brand-empresa');
+      if (!contenedor) return;
+
+      contenedor.replaceChildren();
+      const empresa = (ConstruFactu.Store.state || {}).empresa || {};
+      if (typeof empresa.logo === 'string' && /^data:image\/[^;]+;base64,/.test(empresa.logo)) {
+        const img = document.createElement('img');
+        img.src = empresa.logo;
+        img.alt = empresa.nombre || 'Logo de la empresa';
+        img.className = 'max-h-16 object-contain';
+        contenedor.appendChild(img);
+      } else if (typeof empresa.nombre === 'string' && empresa.nombre.trim() && empresa.nombre.trim() !== 'Construcciones García S.L.') {
+        const nombre = document.createElement('div');
+        nombre.className = 'text-lg font-extrabold text-slate-700';
+        nombre.textContent = empresa.nombre.trim();
+        contenedor.appendChild(nombre);
+      }
+    }
+
     window.addEventListener('DOMContentLoaded', async () => {
       await ConstruFactu.Store.init();
+      renderLogoEmpresaLogin();
       
       // Activar aviso visual si DEV_MODE es true
       if (typeof DEV_MODE !== 'undefined' && DEV_MODE) {
