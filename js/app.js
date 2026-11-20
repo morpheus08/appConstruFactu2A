@@ -219,6 +219,43 @@
         botones: [{ id: 'cancelar', texto: 'Cancelar', estilo: 'neutro', accion: c => c(null) },
                   { id: 'aceptar', texto: opc.aceptar || 'Aceptar', estilo: opc.peligro ? 'peligro' : 'primario', accion: (c, campo) => c(campo.value) }] });
     }
+    function pedirRangoFechas() {
+      const hoy = new Date();
+      const formatoFecha = fecha => `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
+      const desde = document.createElement('input');
+      desde.type = 'date';
+      desde.id = 'fecha-desde';
+      desde.value = formatoFecha(new Date(hoy.getFullYear(), hoy.getMonth(), 1));
+      desde.className = 'w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm';
+      const hasta = document.createElement('input');
+      hasta.type = 'date';
+      hasta.id = 'fecha-hasta';
+      hasta.value = formatoFecha(new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0));
+      hasta.className = 'w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm';
+
+      const caja = Dialogo._el('div', 'space-y-3');
+      const grupoDesde = Dialogo._el('div', 'space-y-1');
+      const etiquetaDesde = Dialogo._el('label', 'block text-sm font-bold text-slate-700', 'Desde');
+      etiquetaDesde.htmlFor = desde.id;
+      grupoDesde.append(etiquetaDesde, desde);
+      const grupoHasta = Dialogo._el('div', 'space-y-1');
+      const etiquetaHasta = Dialogo._el('label', 'block text-sm font-bold text-slate-700', 'Hasta');
+      etiquetaHasta.htmlFor = hasta.id;
+      grupoHasta.append(etiquetaHasta, hasta);
+      caja.append(grupoDesde, grupoHasta);
+
+      return Dialogo._abrir({
+        titulo: 'Exportar para Gestoría',
+        mensaje: 'Selecciona el periodo que quieres descargar:',
+        extra: { nodo: caja },
+        principal: 'descargar',
+        alEscapar: c => c(null),
+        botones: [
+          { id: 'cancelar', texto: 'Cancelar', estilo: 'neutro', accion: c => c(null) },
+          { id: 'descargar', texto: 'Descargar ZIP', estilo: 'primario', accion: c => c({ desde: desde.value, hasta: hasta.value }) }
+        ]
+      });
+    }
     function pedirOpcionesBorrado() {
       const caja = Dialogo._el('div', 'space-y-3');
       const crearOpcion = (id, texto, marcada) => {
@@ -659,17 +696,12 @@
 
     function buscarActualizaciones() { avisar('Versión actual (v0.9.45) al día.'); }
 
-    async function descargarGestoriaMesActual() {
+    async function descargarGestoriaPorFechas() {
       try {
-        const hoy = new Date();
-        const año = hoy.getFullYear();
-        const mes = hoy.getMonth();
-        const primerDia = `${año}-${String(mes + 1).padStart(2, '0')}-01`;
-        const ultimoDia = new Date(año, mes + 1, 0);
-        const ultimoDiaTexto = `${año}-${String(mes + 1).padStart(2, '0')}-${String(ultimoDia.getDate()).padStart(2, '0')}`;
-
-        await ConstruFactu.Gestor.exportarGestor(primerDia, ultimoDiaTexto);
-        mostrarAviso('ZIP generado. Revisa tus descargas.');
+        const rango = await pedirRangoFechas();
+        if (rango === null) return;
+        await ConstruFactu.Gestor.exportarGestor(rango.desde, rango.hasta);
+        mostrarAviso('ZIP generado y descargado.');
       } catch (error) {
         mostrarAviso(error && error.message ? error.message : 'No se pudo generar el archivo para Gestoría.', 'error');
       }

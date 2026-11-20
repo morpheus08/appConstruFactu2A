@@ -45,6 +45,7 @@ function abrirListadoDocs(seccion) {
       albaranesSeleccionados.clear();
       const titulos = { presupuestos: 'PRESUPUESTOS', albaranes: 'ALBARANES', facturas: 'FACTURAS Y RECTIFICATIVAS' };
       document.getElementById('docs-titulo').textContent = titulos[seccion];
+      document.getElementById('gestoria-export-actions').classList.toggle('hidden', seccion !== 'facturas');
       renderListadoDocs();
     }
 
