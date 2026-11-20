@@ -125,22 +125,23 @@ function verPDFDocumento(id) {
    
       container.appendChild(topDiv);
 
+      const modoVerifactuActivo = empresa.modoVerifactu === 'verifactu';
       if (esOficial) {
         const bottomDiv = document.createElement('div');
         bottomDiv.className = 'no-corte';
         bottomDiv.innerHTML = `
           <div class="pt-4 border-t-2 border-dashed flex items-center justify-between mt-4">
             <div class="space-y-1">
-              <div class="text-[10px] font-extrabold text-slate-800 uppercase">VERI*FACTU - Sistema Informático de Facturación</div>
-              <div class="text-[9px] text-slate-600">Huella SHA-256: <span class="font-mono text-[8px]">${doc.hashVerifactu || ''}</span></div>
-              <div class="text-[9px] text-slate-500">Sede Electrónica AEAT - Verificable mediante código QR</div>
+              <div class="text-[10px] font-extrabold text-slate-800 uppercase">${modoVerifactuActivo ? 'MODO CONFIGURADO: VERI*FACTU' : 'SISTEMA INFORMÁTICO DE FACTURACIÓN (MODO TRANSICIÓN)'}</div>
+              ${modoVerifactuActivo ? `<div class="text-[9px] text-slate-600">Huella SHA-256: <span class="font-mono text-[8px]">${doc.hashVerifactu || ''}</span></div>` : ''}
+              <div class="text-[9px] text-slate-500">${modoVerifactuActivo ? 'La transmisión y verificación ante AEAT no están acreditadas por esta aplicación.' : 'El QR y la huella no acreditan por sí solos el cumplimiento normativo.'}</div>
             </div>
-            <div id="qrcode-${doc.id}" class="p-1 bg-white border rounded shadow-sm flex items-center justify-center w-20 h-20"></div>
+            ${modoVerifactuActivo ? `<div id="qrcode-${doc.id}" class="p-1 bg-white border rounded shadow-sm flex items-center justify-center w-20 h-20"></div>` : ''}
           </div>
         `;
         container.appendChild(bottomDiv);
 
-        setTimeout(() => {
+        if (modoVerifactuActivo) setTimeout(() => {
           const el = document.getElementById('qrcode-' + doc.id);
           if (el && !el.hasChildNodes()) {
             try {
@@ -272,22 +273,30 @@ function verPDFDocumento(id) {
      
 
       // ── Bloque Veri*factu (huella + QR) ──
+      const modoVerifactuActivo = emp.modoVerifactu === 'verifactu';
       if (esOficial) {
         asegurar(32); yy += 2;
         pdf.setDrawColor(...C.claro); pdf.setLineWidth(0.4); pdf.setLineDashPattern([1.6, 1.6], 0); pdf.line(L, yy, R, yy); pdf.setLineDashPattern([], 0);
-        const tituloSif = emp.modoVerifactu === 'no_verifactu'
-          ? 'SISTEMA DE FACTURACIÓN (NO VERIFICADO)'
-          : 'VERI*FACTU - SISTEMA INFORMÁTICO DE FACTURACIÓN';
-        fuente('bold', 7.5); txt(C.ink); pdf.text(tituloSif, L, yy + 6);
-        fuente('normal', 7); txt(C.gris); pdf.text('Huella SHA-256:', L, yy + 11);
-        pdf.setFont('courier', 'normal'); pdf.setFontSize(6); pdf.text(pdfTxt(d.hashVerifactu || ''), L + 20, yy + 11);
-        fuente('normal', 7); txt(C.suave); pdf.text('Sede Electrónica AEAT - Verificable mediante código QR', L, yy + 15.5);
-        pdf.setFillColor(255, 255, 255); pdf.setDrawColor(...C.borde); pdf.setLineWidth(0.25); pdf.roundedRect(R - 25, yy + 3, 25, 25, 1.5, 1.5, 'FD');
-        dibujarQRVector(pdf, urlQrVerifactu(d, emp, tot), R - 23, yy + 5, 21);
+        fuente('bold', 7.5); txt(C.ink); pdf.text(modoVerifactuActivo ? 'MODO CONFIGURADO: VERI*FACTU' : 'SISTEMA INFORMÁTICO DE FACTURACIÓN (MODO TRANSICIÓN)', L, yy + 6);
+        fuente('normal', 7); txt(C.suave); pdf.text(modoVerifactuActivo ? 'La transmisión y verificación ante AEAT no están acreditadas por esta aplicación.' : 'El QR y la huella no acreditan por sí solos el cumplimiento normativo.', L, yy + 15.5);
+        if (modoVerifactuActivo) {
+          fuente('normal', 7); txt(C.gris); pdf.text('Huella SHA-256:', L, yy + 11);
+          pdf.setFont('courier', 'normal'); pdf.setFontSize(6); pdf.text(pdfTxt(d.hashVerifactu || ''), L + 20, yy + 11);
+          pdf.setFillColor(255, 255, 255); pdf.setDrawColor(...C.borde); pdf.setLineWidth(0.25); pdf.roundedRect(R - 25, yy + 3, 25, 25, 1.5, 1.5, 'FD');
+          dibujarQRVector(pdf, urlQrVerifactu(d, emp, tot), R - 23, yy + 5, 21);
+        }
       }
 
       // ── Pie de página ──
       const n = pdf.internal.getNumberOfPages(), nombre = pdfTxt(d.numero || 'documento');
+      pdf.setPage(n);
+      fuente('normal', 7); txt(C.claro);
+      const notaLegal = esOficial && modoVerifactuActivo
+        ? 'Modo Veri*factu seleccionado. La transmisión y verificación ante AEAT no están acreditadas por esta aplicación.'
+        : esOficial
+          ? 'Documento emitido por ConstruFactu. La validez fiscal y el cumplimiento normativo deben verificarse conforme a la normativa aplicable.'
+        : 'Documento de gestión interna. No válido como factura oficial.';
+      pdf.text(pdf.splitTextToSize(pdfTxt(notaLegal), W), 105, 280, { align: 'center' });
       for (let i = 1; i <= n; i++) { pdf.setPage(i); fuente('normal', 7.5); txt(C.claro); pdf.text(`${nombre}  ·  Página ${i} de ${n}`, 105, 288, { align: 'center' }); }
       return pdf;
     }
