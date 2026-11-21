@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generador de Licencias PRO · ConstruFactu</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+  <main class="w-full max-w-lg bg-white rounded-2xl shadow-xl p-6 sm:p-8 space-y-6">
+    <header class="text-center space-y-2">
+      <h1 class="text-2xl font-extrabold text-slate-900">Generador de Licencias PRO</h1>
+      <p class="text-sm text-slate-500">ConstruFactu</p>
+    </header>
+
+    <div class="space-y-2">
+      <label for="fecha-expiracion" class="block text-sm font-bold text-slate-700">Fecha de expiración</label>
+      <input id="fecha-expiracion" type="date" class="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-slate-800">
+    </div>
+
+    <button id="btn-generar" type="button" class="w-full py-3 rounded-xl bg-slate-900 text-white font-bold text-sm hover:bg-slate-800">
+      Generar Clave
+    </button>
+
+    <div class="space-y-2">
+      <label for="clave-generada" class="block text-sm font-bold text-slate-700">Clave generada</label>
+      <input id="clave-generada" type="text" readonly autocomplete="off" class="w-full px-4 py-4 rounded-xl border border-slate-300 bg-slate-50 text-center font-mono text-lg font-bold tracking-wide">
+    </div>
+
+    <button id="btn-copiar" type="button" class="w-full py-3 rounded-xl bg-emerald-700 text-white font-bold text-sm hover:bg-emerald-800">
+      Copiar
+    </button>
+    <p id="mensaje" role="status" aria-live="polite" class="min-h-5 text-center text-sm text-slate-600"></p>
+  </main>
+
+  <script src="js/core/namespace.js"></script>
+  <script src="js/services/verifactu.js"></script>
+  <script>
+    (function() {
+      const fechaInput = document.getElementById('fecha-expiracion');
+      const claveInput = document.getElementById('clave-generada');
+      const mensaje = document.getElementById('mensaje');
+      const formatoFecha = fecha => [
+        fecha.getFullYear(),
+        String(fecha.getMonth() + 1).padStart(2, '0'),
+        String(fecha.getDate()).padStart(2, '0')
+      ].join('-');
+
+      const expiracionInicial = new Date();
+      expiracionInicial.setFullYear(expiracionInicial.getFullYear() + 1);
+      fechaInput.value = formatoFecha(expiracionInicial);
+
+      document.getElementById('btn-generar').addEventListener('click', async () => {
+        mensaje.textContent = '';
+        if (!fechaInput.value) {
+          mensaje.textContent = 'Selecciona una fecha de expiración.';
+          return;
+        }
+
+        try {
+          const fechaCompacta = fechaInput.value.replace(/-/g, '');
+          const hash = await ConstruFactu.VeriFactu.sha256('CONSTRUFACTU_SECRET_SALT_' + fechaCompacta);
+          claveInput.value = `CF-PRO-${fechaCompacta}-${hash.slice(0, 8).toUpperCase()}`;
+          mensaje.textContent = 'Clave generada.';
+        } catch (error) {
+          mensaje.textContent = 'No se pudo generar la clave: ' + error.message;
+        }
+      });
+
+      document.getElementById('btn-copiar').addEventListener('click', async () => {
+        if (!claveInput.value) {
+          mensaje.textContent = 'Primero genera una clave.';
+          return;
+        }
+
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(claveInput.value);
+          } else {
+            claveInput.select();
+            if (!document.execCommand('copy')) throw new Error('Copia no disponible en este navegador.');
+          }
+          mensaje.textContent = 'Clave copiada.';
+        } catch (error) {
+          mensaje.textContent = error.message || 'No se pudo copiar. Selecciona la clave y cópiala manualmente.';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

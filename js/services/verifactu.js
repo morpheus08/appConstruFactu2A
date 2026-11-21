@@ -99,6 +99,10 @@
         },
 
         async emitirOficial(docId) {
+          const lic = ConstruFactu.Licensing.obtenerEstado();
+          if (lic.vigente === false) {
+            throw new Error('Límite de prueba alcanzado. Por favor, adquiere una licencia PRO para emitir más facturas.');
+          }
           if (this._emitiendo) throw new Error('Ya hay una emisión en curso.');
           this._emitiendo = true;
           const St = ConstruFactu.Store;

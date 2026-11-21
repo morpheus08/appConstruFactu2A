@@ -341,8 +341,8 @@
       </div>
       <button id="btn-nuevo-doc" data-click="nuevoDocumento" class="w-full py-3.5 rounded-xl bg-slate-900 text-white font-bold text-sm mb-3">+ NUEVO DOCUMENTO</button>
       <div id="gestoria-export-actions" class="hidden mb-3">
-        <button id="btn-exportar-gestoria" data-click="descargarGestoriaPorFechas" class="hidden w-full py-3.5 rounded-xl bg-slate-900 text-white font-bold text-sm">📦 Exportar periodo para Gestoría</button>
-        <div class="mt-1 text-center text-xs text-slate-500">Incluye PDFs y resumen en Excel</div>
+        <button id="btn-exportar-gestoria" data-click="descargarGestoriaPorFechas" class="w-full py-3.5 rounded-xl bg-slate-900 text-white font-bold text-sm">📦 Exportar periodo para Gestoría</button>
+        <div class="text-xs text-slate-500 text-center mt-2">Incluye PDFs y resumen en Excel</div>
       </div>
       <div id="barra-agrupar-albaranes" class="hidden mb-3 p-3 rounded-xl bg-amber-50 border border-amber-300 flex items-center justify-between">
         <span id="txt-albaranes-sel" class="text-xs font-bold text-amber-900">0 albaranes marcados</span>
@@ -617,55 +617,26 @@
         <h2 class="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">MANUAL DE AYUDA Y GUÍA RÁPIDA</h2>
       </div>
 
-      <div class="space-y-4 text-xs text-slate-700">
-        <!-- Tarjeta 1 -->
-        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
-          <div class="font-extrabold text-slate-900 text-sm flex items-center gap-2 text-amber-700">
-            <span>🚀</span> 1. Primeros Pasos y Acceso
-          </div>
-          <p class="leading-relaxed text-slate-600">
-            ConstruFactu es una aplicación <strong>Local-First</strong> (funciona de forma privada en tu dispositivo sin depender de servidores externos). Puedes entrar con tu email de acceso y contraseña definidos en el menú de <strong>⚙️ Ajustes</strong>.
-          </p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+          <img src="assets/help-01-configuracion.svg" alt="" class="w-24 h-24 mb-4 mx-auto object-contain">
+          <h3 class="text-center font-bold text-slate-900 mb-2">1. Configura tu Empresa</h3>
+          <p class="text-sm text-slate-600 text-center">Añade tus datos fiscales, logo y preferencias desde Ajustes.</p>
         </div>
-
-        <!-- Tarjeta 2 -->
-        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
-          <div class="font-extrabold text-slate-900 text-sm flex items-center gap-2 text-blue-700">
-            <span>📋</span> 2. Presupuestos, Albaranes y Facturas Proforma
-          </div>
-          <p class="leading-relaxed text-slate-600">
-            Crea valoraciones de obra detalladas con partidas del tarifario. Desde los albaranes, puedes agrupar varios albaranes de una misma obra y unificarlos automáticamente en una factura proforma o oficial con un solo toque.
-          </p>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+          <img src="assets/help-02-presupuestos.svg" alt="" class="w-24 h-24 mb-4 mx-auto object-contain">
+          <h3 class="text-center font-bold text-slate-900 mb-2">2. Crea Presupuestos</h3>
+          <p class="text-sm text-slate-600 text-center">Prepara presupuestos y albaranes con tus partidas de obra.</p>
         </div>
-
-        <!-- Tarjeta 3 -->
-        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
-          <div class="font-extrabold text-slate-900 text-sm flex items-center gap-2 text-emerald-700">
-            <span>🔒</span> 3. Emisión de Facturas Oficiales Veri*factu
-          </div>
-          <p class="leading-relaxed text-slate-600">
-            Al emitir una factura oficial, la aplicación genera una huella criptográfica encadenada (SHA-256) conforme a los requisitos antifraude (Veri*factu / Ley Antifraude). Las facturas oficiales quedan bloqueadas e immutables, permitiendo generar su PDF oficial o enviarlo a tu gestoría en formato CSV.
-          </p>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+          <img src="assets/help-03-facturacion.svg" alt="" class="w-24 h-24 mb-4 mx-auto object-contain">
+          <h3 class="text-center font-bold text-slate-900 mb-2">3. Gestiona Facturas</h3>
+          <p class="text-sm text-slate-600 text-center">Emite facturas y rectificativas y consulta su PDF.</p>
         </div>
-
-        <!-- Tarjeta 4 -->
-        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
-          <div class="font-extrabold text-slate-900 text-sm flex items-center gap-2 text-indigo-700">
-            <span>📐</span> 4. Tarifario y Carga de Precios Excel
-          </div>
-          <p class="leading-relaxed text-slate-600">
-            En la sección <strong>Tarifario</strong> puedes gestionar tu base de precios por capítulos (Albañilería, Revestimientos, Fontanería...). Puedes descargar la plantilla Excel de ejemplo o importar tus tarifas masivamente desde cualquier archivo <strong>.xlsx</strong> o <strong>.csv</strong>.
-          </p>
-        </div>
-
-        <!-- Tarjeta 5 -->
-        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
-          <div class="font-extrabold text-slate-900 text-sm flex items-center gap-2 text-rose-700">
-            <span>☁️</span> 5. Copias de Seguridad y Nube Móvil
-          </div>
-          <p class="leading-relaxed text-slate-600">
-            Tus datos están seguros en tu navegador. Desde <strong>⚙️ Ajustes</strong> puedes exportar una copia de seguridad en formato <strong>.JSON</strong> en cualquier momento para guardarla en iCloud Drive o Google Drive y restaurarla en cualquier otro dispositivo.
-          </p>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+          <img src="assets/help-04-copia-seguridad.svg" alt="" class="w-24 h-24 mb-4 mx-auto object-contain">
+          <h3 class="text-center font-bold text-slate-900 mb-2">4. Guarda una Copia</h3>
+          <p class="text-sm text-slate-600 text-center">Descarga el respaldo JSON y consérvalo en un lugar seguro.</p>
         </div>
       </div>
     </section>

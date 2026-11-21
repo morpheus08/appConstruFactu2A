@@ -256,6 +256,40 @@
         ]
       });
     }
+    async function mostrarModalCompra() {
+      const email = String((ConstruFactu.Store.state.auth || {}).email || '');
+      const caja = Dialogo._el('div', 'space-y-2');
+      const etiquetaEmail = Dialogo._el('label', 'block text-xs font-bold text-slate-700', 'Email de usuario para indicar en el pago');
+      etiquetaEmail.htmlFor = 'email-licencia';
+      const inputEmail = Dialogo._el('input', 'w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-sm');
+      inputEmail.id = 'email-licencia';
+      inputEmail.type = 'email';
+      inputEmail.value = email;
+      inputEmail.readOnly = true;
+      caja.append(etiquetaEmail, inputEmail);
+
+      const asunto = 'Solicitud de Licencia ConstruFactu';
+      const cuerpo = 'Hola, he realizado el Bizum para activar mi licencia. Mi email de usuario es: ' + email;
+      return Dialogo._abrir({
+        titulo: 'Activar Licencia PRO',
+        mensaje: 'Para activar tu licencia anual, realiza una transferencia de 49€ por Bizum al número 695709918 indicando tu email. Envíanos el justificante y te enviaremos tu clave de activación en menos de 24h.',
+        extra: { nodo: caja },
+        principal: 'email',
+        alEscapar: c => c(false),
+        botones: [
+          { id: 'cerrar', texto: 'Cerrar', estilo: 'neutro', accion: c => c(false) },
+          {
+            id: 'email',
+            texto: 'Enviar justificante por Email',
+            estilo: 'primario',
+            accion: c => {
+              window.location.href = `mailto:alfonsoarandagarcia@gmail.com?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
+              c(true);
+            }
+          }
+        ]
+      });
+    }
     function pedirOpcionesBorrado() {
       const caja = Dialogo._el('div', 'space-y-3');
       const crearOpcion = (id, texto, marcada) => {

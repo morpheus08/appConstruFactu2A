@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="100%" height="100%">
+  <!-- Fondo circular sutil -->
+  <circle cx="400" cy="400" r="300" fill="#F7F8FA"/>
+
+  <!-- Nube (Acero Grafito) -->
+  <path d="M 250 480 a 80 80 0 0 1 0 -160 a 120 120 0 0 1 230 -40 a 90 90 0 0 1 70 200 z" fill="none" stroke="#18202C" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Escudo integrado en la nube (Naranja) -->
+  <g transform="translate(400, 380)">
+    <path d="M 0 -60 L 50 -30 V 20 C 50 60 0 90 0 90 C 0 90 -50 60 -50 20 V -30 Z" fill="#E85D04"/>
+    <!-- Flecha de descarga/guardado dentro del escudo -->
+    <path d="M 0 -20 V 30 M -15 15 L 0 30 L 15 15" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

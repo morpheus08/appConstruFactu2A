@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="100%" height="100%">
+  <!-- Fondo oscuro para máximo contraste y seguridad -->
+  <rect width="800" height="800" rx="60" fill="#18202C"/>
+  
+  <!-- Botón Verde Cierre -->
+  <rect x="150" y="250" width="500" height="300" rx="40" fill="#15803D"/>
+  
+  <!-- Candado de seguridad (Blanco) -->
+  <g fill="none" stroke="#FFFFFF" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Cuerpo del candado -->
+    <rect x="320" y="370" width="160" height="120" rx="20" fill="#15803D"/>
+    <!-- Arco del candado -->
+    <path d="M 350 370 v -40 a 50 50 0 0 1 100 0 v 40"/>
+    <!-- Check de validación en el centro -->
+    <path d="M 370 430 l 20 20 l 40 -40" stroke-width="16"/>
+  </g>
+</svg>
