@@ -290,6 +290,7 @@
         ]
       });
     }
+    window.mostrarModalCompra = mostrarModalCompra;
     function pedirOpcionesBorrado() {
       const caja = Dialogo._el('div', 'space-y-3');
       const crearOpcion = (id, texto, marcada) => {
@@ -743,21 +744,40 @@
 
     function renderLogoEmpresaLogin() {
       const contenedor = document.getElementById('login-brand-empresa');
-      if (!contenedor) return;
-
-      contenedor.replaceChildren();
       const empresa = (ConstruFactu.Store.state || {}).empresa || {};
-      if (typeof empresa.logo === 'string' && /^data:image\/[^;]+;base64,/.test(empresa.logo)) {
-        const img = document.createElement('img');
-        img.src = empresa.logo;
-        img.alt = empresa.nombre || 'Logo de la empresa';
-        img.className = 'max-h-16 object-contain';
-        contenedor.appendChild(img);
-      } else if (typeof empresa.nombre === 'string' && empresa.nombre.trim() && empresa.nombre.trim() !== 'Construcciones García S.L.') {
-        const nombre = document.createElement('div');
-        nombre.className = 'text-lg font-extrabold text-slate-700';
-        nombre.textContent = empresa.nombre.trim();
-        contenedor.appendChild(nombre);
+      if (contenedor) {
+        contenedor.replaceChildren();
+        if (typeof empresa.logo === 'string' && /^data:image\/[^;]+;base64,/.test(empresa.logo)) {
+          const img = document.createElement('img');
+          img.src = empresa.logo;
+          img.alt = empresa.nombre || 'Logo de la empresa';
+          img.className = 'max-h-16 object-contain';
+          contenedor.appendChild(img);
+        } else if (typeof empresa.nombre === 'string' && empresa.nombre.trim()) {
+          const nombre = document.createElement('div');
+          nombre.className = 'text-lg font-extrabold text-slate-700';
+          nombre.textContent = empresa.nombre.trim();
+          contenedor.appendChild(nombre);
+        }
+      }
+
+      const licenciaStatus = document.getElementById('login-licencia-status');
+      if (!licenciaStatus) return;
+      const estadoLicencia = ConstruFactu.Licensing.obtenerEstado();
+      if (!estadoLicencia.vigente) {
+        licenciaStatus.textContent = 'Prueba agotada. Activa tu licencia PRO.';
+      } else if (empresa.licenciaTipo === 'pro') {
+        const expiracion = empresa.licenciaExpiracion
+          ? new Date(empresa.licenciaExpiracion)
+          : null;
+        licenciaStatus.textContent = expiracion && !Number.isNaN(expiracion.getTime())
+          ? `Licencia PRO hasta: ${expiracion.toLocaleDateString('es-ES')}`
+          : 'Licencia PRO activa';
+      } else {
+        const inicio = new Date(empresa.fechaCreacionSistema);
+        const diasTranscurridos = Math.floor((Date.now() - inicio.getTime()) / (1000 * 60 * 60 * 24));
+        const diasRestantes = Math.max(0, 15 - diasTranscurridos);
+        licenciaStatus.textContent = `Prueba: ${diasRestantes} días restantes`;
       }
     }
 

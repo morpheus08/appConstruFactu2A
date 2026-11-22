@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <link rel="icon" type="image/png" href="assets/icono-app.png">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://cdn.sheetjs.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; manifest-src 'self' blob:; font-src 'self' data:; connect-src 'self'; script-src-attr 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
@@ -74,8 +75,11 @@
 
       <div class="pt-6 flex flex-col items-center text-center">
         <div class="flex flex-col items-center justify-center mb-6">
-          <img src="assets/logo-construfactu.png" alt="ConstruFactu" class="h-12 object-contain">
-          <p class="text-sm text-slate-500 text-center mb-6">Gestión de obra, presupuestos y facturas</p>
+          <div class="flex items-center justify-center gap-4">
+            <img src="assets/icono-app.png" alt="" class="w-12 h-12">
+            <img src="assets/logo-construfactu.png" alt="ConstruFactu" class="h-10 object-contain">
+          </div>
+          <p class="text-sm text-slate-500 text-center mb-6">Gestión de presupuestos y facturas</p>
           <div id="login-brand-empresa" class="flex flex-col items-center justify-center text-center mt-2"></div>
         </div>
       </div>
@@ -149,10 +153,7 @@
       </div>
 
       <div class="text-center pb-2 space-y-1.5">
-        <div class="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-          ● Licencia Activa · Modo Local-First
-        </div>
-        <div class="text-[10px] font-bold text-slate-400">ConstruFactu v0.9.45</div>
+        <div id="login-licencia-status" class="text-xs text-center text-slate-500 mt-4"></div>
       </div>
     </section>
 
@@ -341,8 +342,8 @@
       </div>
       <button id="btn-nuevo-doc" data-click="nuevoDocumento" class="w-full py-3.5 rounded-xl bg-slate-900 text-white font-bold text-sm mb-3">+ NUEVO DOCUMENTO</button>
       <div id="gestoria-export-actions" class="hidden mb-3">
-        <button id="btn-exportar-gestoria" data-click="descargarGestoriaPorFechas" class="w-full py-3.5 rounded-xl bg-slate-900 text-white font-bold text-sm">📦 Exportar periodo para Gestoría</button>
-        <div class="text-xs text-slate-500 text-center mt-2">Incluye PDFs y resumen en Excel</div>
+        <button id="btn-exportar-gestoria" data-click="descargarGestoriaPorFechas" class="w-full py-3.5 rounded-xl bg-slate-900 text-white font-bold text-sm">📦 Exportar Facturas y Gastos para Gestoría</button>
+        <div class="text-xs text-slate-500 text-center mt-2">Incluye PDFs y libros CSV</div>
       </div>
       <div id="barra-agrupar-albaranes" class="hidden mb-3 p-3 rounded-xl bg-amber-50 border border-amber-300 flex items-center justify-between">
         <span id="txt-albaranes-sel" class="text-xs font-bold text-amber-900">0 albaranes marcados</span>
@@ -725,6 +726,7 @@
           <input id="cfg-licencia-input" type="text" placeholder="CF-PRO-2026-XXXX" class="flex-1 px-3 py-2.5 rounded-xl border border-amber-300 bg-white text-xs font-bold uppercase">
           <button data-click="activarLicencia" class="px-4 py-2.5 rounded-xl bg-slate-900 text-amber-400 font-extrabold text-xs shadow-md">ACTIVAR</button>
         </div>
+        <button data-click="mostrarModalCompra" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl py-2 px-4 shadow">💳 Comprar Licencia PRO</button>
       </div>
 
       <!-- 4. BORRAR DATOS (EN PRODUCCIÓN) Y CONTROL DE SESIÓN -->

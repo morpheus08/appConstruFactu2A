@@ -288,7 +288,8 @@ function abrirListadoDocs(seccion) {
       const count = ConstruFactu.Documentos.siguienteBorrador('factura');
       doc.numero = `PROFORMA-${String(count).padStart(3, '0')}`;
       doc.estado = 'Proforma';
-      await ConstruFactu.Store.save();
+      if (!(await ConstruFactu.Store.save())) return;
+      avisar('✅ El presupuesto se ha convertido en Factura Proforma con éxito.');
       vistaAnteriorEditor = 'facturas';
       abrirEditorDocumento(doc.id, 'factura');
     }

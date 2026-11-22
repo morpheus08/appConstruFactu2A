@@ -1,0 +1,17 @@
+¡Bienvenido a ConstruFactu!
+
+Gracias por confiar en nosotros para gestionar tu obra y tus facturas.
+
+--- ¿CÓMO ABRIR EL PROGRAMA? ---
+1. Busca el archivo llamado "index.html" en esta carpeta.
+2. Haz doble clic sobre él. Se abrirá en tu navegador (te recomendamos Google Chrome o Microsoft Edge).
+3. ¡Ya puedes empezar a trabajar!
+
+(Consejo: Puedes crear un acceso directo a "index.html" en tu escritorio para abrirlo más rápido).
+
+--- ¡MUY IMPORTANTE! ---
+ConstruFactu guarda los datos de forma segura en tu propio ordenador. 
+Para no perder tus facturas si se estropea el ordenador, entra en "Ajustes" y pulsa el botón de "Descargar Copia de Seguridad" al menos una vez a la semana.
+
+--- ¿NECESITAS AYUDA? ---
+Si tienes cualquier problema o quieres activar tu licencia PRO, escríbenos a: alfonsoarandagarcia@gmail.com
