@@ -524,12 +524,18 @@
 
     function cargarLogoEmpresa(input) {
       if (input.files && input.files[0]) {
+        const archivo = input.files[0];
+        if (archivo.size > 50000) {
+          avisar('El logo es demasiado grande. Por favor, usa una imagen de menos de 50 KB para evitar problemas de sincronización.');
+          return;
+        }
+
         const reader = new FileReader();
         reader.onload = function(e) {
           ConstruFactu.Store.state.empresa.logo = e.target.result;
           avisar('Logotipo cargado correctamente. Guarda los datos para consolidar.');
         };
-        reader.readAsDataURL(input.files[0]);
+        reader.readAsDataURL(archivo);
       }
     }
 

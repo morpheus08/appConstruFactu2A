@@ -108,7 +108,17 @@
         const docRef = fbDb.collection('syncSpaces').doc(syncCode);
 
         // --- FASE 1: PULL (Traer de la nube) ---
-        const docSnap = await docRef.get();
+        let docSnap;
+        try {
+            docSnap = await docRef.get();
+        } catch (err) {
+            const mensaje = err && typeof err.message === 'string' ? err.message : String(err);
+            const mensajeNormalizado = mensaje.toLowerCase();
+            if (['offline', 'unavailable', 'network'].some(palabra => mensajeNormalizado.includes(palabra))) {
+                throw new Error('❌ Sin conexión a internet o red bloqueada. Revisa tu WiFi y vuelve a intentarlo.');
+            }
+            throw err;
+        }
         let datosNube = { clientes: [], documentos: [], gastos: [], catalogoPrecios: [] };
 
         if (docSnap.exists) {
@@ -205,6 +215,7 @@
                 <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5 space-y-4">
                     <h2 class="font-extrabold text-lg text-slate-900">Sincronización en la Nube</h2>
                     <p class="text-xs text-slate-600">Este es tu <strong>Código Nube</strong>. Úsalo en tu otro dispositivo (móvil/PC) para compartir los datos.</p>
+                    <p class="text-[10px] text-slate-400 mt-1">💡 Consejo: Asegúrate de tener internet. Si falla, comprueba que no tienes un bloqueador de anuncios activado.</p>
                     
                     <div id="sync-code-display" class="font-mono text-xl font-extrabold text-center bg-slate-50 border border-slate-200 rounded-xl p-3 tracking-widest select-all text-indigo-700"></div>
                     
@@ -252,16 +263,24 @@
 
         document.getElementById('btn-ejecutar-sync').onclick = async () => {
             const btnSync = document.getElementById('btn-ejecutar-sync');
+            const btnCerrar = document.getElementById('btn-cerrar-sync');
             const status = document.getElementById('sync-status');
+
+            if (!navigator.onLine) {
+                status.textContent = '❌ Sin conexión a internet. Conéctate y vuelve a intentarlo.';
+                status.className = 'text-xs font-bold text-center text-rose-600 block p-2 bg-rose-50 rounded-lg';
+                return;
+            }
             
             try {
                 btnSync.disabled = true;
-                btnSync.textContent = 'Conectando...';
+                btnCerrar.disabled = true;
+                btnSync.textContent = 'Sincronizando...';
+                btnSync.classList.add('animate-pulse');
                 status.classList.add('hidden');
 
                 await inicializarFirebase();
                 
-                btnSync.textContent = 'Sincronizando...';
                 await sincronizar();
 
                 status.textContent = '✅ Sincronización completada.';
@@ -272,11 +291,14 @@
                 
             } catch (err) {
                 console.error(err);
-                status.textContent = '❌ ' + (err.message || 'Error al sincronizar.');
+                const mensajeError = err && typeof err.message === 'string' ? err.message : 'Error al sincronizar.';
+                status.textContent = mensajeError.startsWith('❌') ? mensajeError : '❌ ' + mensajeError;
                 status.className = 'text-xs font-bold text-center text-rose-600 block p-2 bg-rose-50 rounded-lg';
             } finally {
                 btnSync.disabled = false;
                 btnSync.textContent = 'Sincronizar ahora';
+                btnSync.classList.remove('animate-pulse');
+                btnCerrar.disabled = false;
             }
         };
     }
