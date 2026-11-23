@@ -2,7 +2,9 @@
 function renderGastos() {
       const q = (document.getElementById('buscar-gasto').value || '').toLowerCase();
       const cont = document.getElementById('lista-gastos');
-      const filtrados = (ConstruFactu.Store.state.gastos || []).filter(g => g.proveedor.toLowerCase().includes(q) || g.concepto.toLowerCase().includes(q));
+      const filtrados = (ConstruFactu.Store.state.gastos || [])
+        .filter(g => !g.deletedAt)
+        .filter(g => g.proveedor.toLowerCase().includes(q) || g.concepto.toLowerCase().includes(q));
       if (!filtrados.length) { cont.innerHTML = `<div class="text-center text-xs text-slate-400 py-8">No hay gastos.</div>`; return; }
       cont.innerHTML = filtrados.map(g => {
         const tot = ConstruFactu.Money.gasto(g).totalC / 100;
@@ -71,8 +73,17 @@ function renderGastos() {
         categoria: document.getElementById('gas-categoria').value,
         concepto: document.getElementById('gas-concepto').value.trim(),
         base,
-        iva: Number(document.getElementById('gas-iva').value)
+        iva: Number(document.getElementById('gas-iva').value),
+        updatedAt: Date.now(),
+        deletedAt: id ? undefined : null
       };
+      if (id) {
+        const existente = ConstruFactu.Store.state.gastos.find(g => g.id === id);
+        if (existente) datosGasto.deletedAt = existente.deletedAt ?? null;
+      } else {
+        delete datosGasto.deletedAt;
+        datosGasto.deletedAt = null;
+      }
 
       if (!ConstruFactu.Store.state.gastos) ConstruFactu.Store.state.gastos = [];
 
@@ -92,7 +103,10 @@ function renderGastos() {
     }
     async function eliminarGasto(id) {
       if ((await confirmar('¿Eliminar gasto?', { aceptar: 'Eliminar', peligro: true }))) {
-        ConstruFactu.Store.state.gastos = ConstruFactu.Store.state.gastos.filter(g => g.id !== id);
+        const gasto = (ConstruFactu.Store.state.gastos || []).find(g => g.id === id);
+        if (!gasto) return;
+        gasto.deletedAt = Date.now();
+        gasto.updatedAt = Date.now();
         await ConstruFactu.Store.save();
         renderGastos();
       }

@@ -1,6 +1,8 @@
 (function(CF) {
   CF.Documentos = {
-        obtenerTodos() { return ConstruFactu.Store.state.documentos || []; },
+        obtenerTodos() {
+          return (ConstruFactu.Store.state.documentos || []).filter(d => !d.deletedAt);
+        },
         filtrar(tipo) {
           const docs = this.obtenerTodos();
           if (tipo === 'presupuesto' || tipo === 'presupuestos') return docs.filter(d => d.tipo === 'presupuesto');
@@ -30,12 +32,34 @@
             mostrarAviso('Las facturas oficiales son inmutables. Para corregirla emite una rectificativa.', 'error');
             return false;
           }
+          docObj.updatedAt = Date.now();
+          if (idx === -1) {
+            docObj.deletedAt = null;
+          }
           if (idx !== -1) {
             docs[idx] = docObj;
           } else {
             docs.unshift(docObj);
           }
-          await ConstruFactu.Store.save();
+          return await ConstruFactu.Store.save();
+        },
+        async eliminar(id) {
+          const docs = ConstruFactu.Store.state.documentos;
+          const doc = docs.find(d => d.id === id);
+          if (!doc) return false;
+          const deletedAtAnterior = doc.deletedAt;
+          const updatedAtAnterior = doc.updatedAt;
+          const timestamp = Date.now();
+          doc.deletedAt = timestamp;
+          doc.updatedAt = timestamp;
+          if (!(await ConstruFactu.Store.save())) {
+            if (deletedAtAnterior === undefined) delete doc.deletedAt;
+            else doc.deletedAt = deletedAtAnterior;
+            if (updatedAtAnterior === undefined) delete doc.updatedAt;
+            else doc.updatedAt = updatedAtAnterior;
+            return false;
+          }
+          return true;
         }
       };
   let albaranesSeleccionados = new Set();
@@ -221,11 +245,7 @@ function abrirListadoDocs(seccion) {
         return;
       }
       if (!(await confirmar(`¿Eliminar ${doc.tipo} ${doc.numero}?\n\nEsta acción no se puede deshacer.`, { aceptar: 'Eliminar', peligro: true }))) return;
-      const idx = S.documentos.findIndex(d => d.id === id);
-      if (idx === -1) return;
-      S.documentos.splice(idx, 1);
-      if (!(await ConstruFactu.Store.save())) {                       // si no se pudo guardar, no se pierde nada
-        S.documentos.splice(idx, 0, doc);
+      if (!(await ConstruFactu.Documentos.eliminar(id))) {
         avisar('No se pudo guardar el borrado. El documento se ha conservado.', { tipo: 'error' });
         return;
       }
