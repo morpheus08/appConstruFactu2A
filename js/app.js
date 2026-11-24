@@ -41,6 +41,7 @@
             cargarVistaConfig();
             document.getElementById('view-config').classList.remove('hidden');
           } else if (destino === 'ayuda') {
+            window.renderizarManual('empresa');
             document.getElementById('view-ayuda').classList.remove('hidden');
           }
           window.scrollTo(0, 0);
@@ -134,6 +135,137 @@
         }
       }
     });
+
+    const capituloAjustes = { numero: 1, titulo: 'Ajustes de Empresa' };
+    const capitulosManual = {
+      empresa: capituloAjustes,
+      ajustes: capituloAjustes,
+      presupuestos: { numero: 2, titulo: 'Presupuestos' },
+      facturacion: { numero: 3, titulo: 'Facturación' },
+      gastos: { numero: 4, titulo: 'Gastos' },
+      tarifario: { numero: 5, titulo: 'Tarifario' },
+      sincronizacion: { numero: 6, titulo: 'Sincronización' },
+      copias: { numero: 7, titulo: 'Copias de Seguridad' },
+      borrado: { numero: 8, titulo: 'Borrado y Cierre' },
+      estado: { numero: 9, titulo: 'Mi Estado y Trimestres' }
+    };
+
+    window.renderizarManual = function renderizarManual(capituloId) {
+      const id = Object.prototype.hasOwnProperty.call(capitulosManual, capituloId) ? capituloId : 'empresa';
+      const capitulo = capitulosManual[id];
+      const numero = document.getElementById('manual-numero');
+      const titulo = document.getElementById('manual-titulo');
+      const texto = document.getElementById('manual-texto');
+      if (!numero || !titulo || !texto) return;
+
+      numero.textContent = `Capítulo ${capitulo.numero}`;
+      titulo.textContent = capitulo.titulo;
+      if (id === 'empresa' || id === 'ajustes') {
+        texto.innerHTML = `
+          <section class="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-6">
+            <h4 class="text-lg sm:text-xl font-extrabold text-slate-900">1. Sube el Logo de tu Empresa</h4>
+            <p class="mt-3 text-base sm:text-lg leading-relaxed text-slate-700">En esta sección puedes subir el logo que aparecerá en tus presupuestos y facturas. Pulsa el botón 'Seleccionar archivo' y elige una imagen de tu ordenador. El logo se verá en la pantalla de inicio y en los PDFs.</p>
+            <img src="assets/manual/01-ajustes-logo.png" style="max-width: 100%; border-radius: 8px; margin: 15px 0;" alt="Subir Logo">
+          </section>
+          <section class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 sm:p-6">
+            <h4 class="text-lg sm:text-xl font-extrabold text-amber-900">2. Configuración de Facturación (¡Cuidado!)</h4>
+            <p class="mt-3 text-base sm:text-lg leading-relaxed text-slate-700">Aquí se configura cómo se numeran tus facturas. La Serie es el prefijo (ej. F2026) y el Siguiente Número es el número que se asignará a la próxima factura. ⚠️ ¡Mucho ojo! No cambies esto si ya has emitido facturas, ya que Hacienda exige que los números sean correlativos y no tengan saltos.</p>
+            <img src="assets/manual/02-ajustes-facturacion.png" style="max-width: 100%; border-radius: 8px; margin: 15px 0;" alt="Configuración Facturación">
+          </section>`;
+      } else if (id === 'presupuestos') {
+        texto.innerHTML = `
+          <section class="mb-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-6">
+            <h4 class="text-lg sm:text-xl font-extrabold text-slate-900">Crear un presupuesto</h4>
+            <p class="mt-3 text-base sm:text-lg leading-relaxed text-slate-700">Crea un presupuesto pulsando '+ Nuevo Documento'. Elige el cliente, añade las partidas (puedes escribirlas a mano o seleccionarlas directamente de tu Tarifario) y guarda. Desde la lista principal puedes descargar el PDF o convertirlo en factura.</p>
+            <img src="assets/manual/10-manual-presupuestos.png" style="max-width: 100%;" alt="Presupuestos">
+          </section>`;
+      } else if (id === 'facturacion') {
+        texto.innerHTML = `
+          <section class="mb-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-6">
+            <h4 class="text-lg sm:text-xl font-extrabold text-slate-900">Gestionar facturas</h4>
+            <p class="mt-3 text-base sm:text-lg leading-relaxed text-slate-700">Tus presupuestos aceptados se pueden convertir en Factura Proforma. Una vez revisada, pulsa 'Emitir Factura Oficial' para que se le asigne un número de serie legal. Si te equivocas, usa el botón 'Rectificar'.</p>
+            <img src="assets/manual/11-manual-facturacion.png" style="max-width: 100%;" alt="Facturación">
+          </section>`;
+      } else if (id === 'gastos') {
+        texto.innerHTML = `
+          <section class="mb-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-6">
+            <h4 class="text-lg sm:text-xl font-extrabold text-slate-900">Registrar gastos</h4>
+            <p class="mt-3 text-base sm:text-lg leading-relaxed text-slate-700">Registra tus compras y gastos (materiales, gasolina, etc.). Puedes añadir el proveedor, la categoría y usar el campo 'Observaciones' para apuntar detalles (ej. 'Material para obra de Juan').</p>
+            <img src="assets/manual/12-manual-gastos.png" style="max-width: 100%;" alt="Gastos">
+          </section>`;
+      } else if (id === 'tarifario') {
+        texto.innerHTML = `
+          <section class="mb-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-6">
+            <h4 class="text-lg sm:text-xl font-extrabold text-slate-900">Tu catálogo de precios</h4>
+            <p class="mt-3 text-base sm:text-lg leading-relaxed text-slate-700">Es tu catálogo de precios. Añade tus partidas con su precio y unidad. Puedes importar o exportar tus precios en formato CSV/Excel para llevarlos siempre contigo.</p>
+            <img src="assets/manual/13-manual-tarifario.png" style="max-width: 100%;" alt="Tarifario">
+          </section>`;
+      } else if (id === 'sincronizacion') {
+        texto.innerHTML = `
+          <section class="mb-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-6">
+            <h4 class="text-lg sm:text-xl font-extrabold text-slate-900">Sincronizar dispositivos</h4>
+            <p class="mt-3 text-base sm:text-lg leading-relaxed text-slate-700">Usa ConstruFactu en varios dispositivos a la vez. Vincula tu cuenta con el Código Nube y todos tus cambios se subirán a la nube automáticamente. Tus datos aparecerán en el otro dispositivo sin hacer nada.</p>
+            <img src="assets/manual/14-manual-sincronizacion.png" style="max-width: 100%;" alt="Sincronización">
+          </section>`;
+      } else if (id === 'copias') {
+        texto.innerHTML = `
+          <section class="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-6">
+            <h4 class="text-lg sm:text-xl font-extrabold text-slate-900">1. ¿Para qué sirve la Copia de Seguridad?</h4>
+            <p class="mt-3 text-base sm:text-lg leading-relaxed text-slate-700">Es muy importante guardar una copia de tus datos de vez en cuando. Es como hacer una fotografía de todos tus clientes, facturas y gastos. Si algún día tu ordenador falla o quieres pasar los datos a otro dispositivo, podrás recuperarlos usando este archivo.</p>
+            <img src="assets/manual/04-manual-copia-seguridad.png" style="max-width: 100%; border-radius: 8px; margin: 15px 0;" alt="Copia de Seguridad">
+          </section>
+          <section class="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-6">
+            <h4 class="text-lg sm:text-xl font-extrabold text-slate-900">2. Guardar una Copia</h4>
+            <p class="mt-3 text-base sm:text-lg leading-relaxed text-slate-700">Tienes dos formas de guardar tu copia:</p>
+            <ol class="mt-2 list-decimal space-y-2 pl-6 text-base sm:text-lg leading-relaxed text-slate-700">
+              <li>Pulsando 'Enviar copia por email': Se abrirá tu gestor de correo para que te lo envíes a ti mismo.</li>
+              <li>Pulsando 'Descargar archivo (.json) en dispositivo': Se guardará un archivo en tu ordenador o móvil. ¡Guárdalo en un pendrive o en la nube!</li>
+            </ol>
+            <img src="assets/manual/05-manual-guardar-copia.png" style="max-width: 100%; border-radius: 8px; margin: 15px 0;" alt="Guardar Copia">
+          </section>
+          <section class="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-6">
+            <h4 class="text-lg sm:text-xl font-extrabold text-slate-900">3. Restaurar tus datos</h4>
+            <p class="mt-3 text-base sm:text-lg leading-relaxed text-slate-700">Si has tenido un problema o estás en un ordenador nuevo, pulsa el botón 'Seleccionar archivo' en la sección 'Restaurar desde archivo JSON' y elige la copia que guardaste antes. ¡Todos tus datos volverán a aparecer como por arte de magia!</p>
+            <img src="assets/manual/06-manual-restaurar.png" style="max-width: 100%; border-radius: 8px; margin: 15px 0;" alt="Restaurar Copia">
+          </section>
+          <section class="mb-2 rounded-2xl border border-blue-200 bg-blue-50 p-4 sm:p-6">
+            <h4 class="text-lg sm:text-xl font-extrabold text-blue-900">4. Recordatorios</h4>
+            <p class="mt-3 text-base sm:text-lg leading-relaxed text-slate-700">Para no olvidarte de hacer copias, puedes configurar un recordatorio en el desplegable 'Frecuencia de Recordatorio'. La app te avisará cada semana o cada mes para que no pierdas nada.</p>
+          </section>`;
+      } else if (id === 'borrado') {
+        texto.innerHTML = `
+          <section class="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-6">
+            <h4 class="text-lg sm:text-xl font-extrabold text-slate-900">1. Borrar Datos (Limpieza)</h4>
+            <p class="mt-3 text-base sm:text-lg leading-relaxed text-slate-700">Si necesitas hacer limpieza, usa el botón 'Borrar datos'. Se abrirá una ventana donde podrás elegir qué quieres borrar (presupuestos, gastos, clientes...). Por seguridad, te pedirá tu PIN de administrador. ⚠️ Ten en cuenta que las facturas oficiales NUNCA se borran, ya que Hacienda obliga a conservarlas.</p>
+            <img src="assets/manual/07-manual-borrar-datos.png" style="max-width: 100%; border-radius: 8px; margin: 15px 0;" alt="Borrar Datos">
+          </section>
+          <section class="mb-6 rounded-2xl border border-rose-200 bg-rose-50 p-4 sm:p-6">
+            <h4 class="text-lg sm:text-xl font-extrabold text-rose-900">2. Cerrar Empresa y Empezar de Cero</h4>
+            <p class="mt-3 text-base sm:text-lg leading-relaxed text-slate-700">Si vendes el negocio o quieres empezar desde cero, pulsa el botón rojo 'Cerrar Empresa'. La app te obligará a descargar una copia de seguridad, luego te pedirá tu PIN y, por último, tendrás que escribir la palabra 'CERRAR' para confirmar. Una vez hecho, la app se reiniciará completamente vacía.</p>
+            <img src="assets/manual/08-manual-cerrar-empresa.png" style="max-width: 100%; border-radius: 8px; margin: 15px 0;" alt="Cerrar Empresa">
+          </section>
+          <section class="mb-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 sm:p-6">
+            <h4 class="text-lg sm:text-xl font-extrabold text-emerald-900">3. Verificar Integridad Veri*Factu</h4>
+            <p class="mt-3 text-base sm:text-lg leading-relaxed text-slate-700">El botón verde 'Verificar integridad Veri*Factu' comprueba que todas tus facturas están correctamente registradas y que nadie ha manipulado los datos. Si todo está bien, te mostrará un mensaje de éxito con el número de registros verificados.</p>
+            <img src="assets/manual/09-manual-verificar-verifactu.png" style="max-width: 100%; border-radius: 8px; margin: 15px 0;" alt="Verificar VeriFactu">
+          </section>`;
+      } else if (id === 'estado') {
+        texto.innerHTML = `
+          <section class="mb-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-6">
+            <h4 class="text-lg sm:text-xl font-extrabold text-slate-900">Consultar Mi Estado y Trimestres</h4>
+            <p class="mt-3 text-base sm:text-lg leading-relaxed text-slate-700">Esta sección calcula automáticamente tu IVA (Modelo 303) de cada trimestre. Revisa tus cifras y, cuando estén listas, usa el botón para enviar los datos directamente a tu gestor o descargarlos para tu contabilidad.</p>
+            <img src="assets/manual/15-manual-trimestres.png" style="max-width: 100%;" alt="Mi Estado y Trimestres">
+          </section>`;
+      } else {
+        texto.textContent = `Contenido del capítulo ${capitulo.numero} en construcción...`;
+      }
+
+      document.querySelectorAll('[data-manual-capitulo]').forEach(boton => {
+        const activo = boton.dataset.manualCapitulo === (id === 'ajustes' ? 'empresa' : id);
+        boton.classList.toggle('is-active', activo);
+        boton.setAttribute('aria-pressed', String(activo));
+      });
+    };
 
     window.addEventListener('construfactu:datosActualizados', event => {
       console.log('[SYNC] Redibujando vista activa tras recibir datos.', event.detail);
@@ -549,10 +681,33 @@
       );
     }
 
+    function renderizarPreviewLogoEmpresa(logo) {
+      const contenedor = document.getElementById('logo-preview-container');
+      if (!contenedor) return;
+      contenedor.replaceChildren();
+
+      if (typeof logo !== 'string' || !logo.startsWith('data:image/')) {
+        contenedor.textContent = 'Ningún archivo seleccionado';
+        return;
+      }
+
+      const imagen = document.createElement('img');
+      imagen.src = logo;
+      imagen.alt = 'Logo actual de la empresa';
+      imagen.style.cssText = 'max-height: 40px; max-width: 150px; object-fit: contain; vertical-align: middle;';
+      imagen.onerror = () => renderizarPreviewLogoEmpresa('');
+      contenedor.append(imagen);
+
+      const etiqueta = document.createElement('span');
+      etiqueta.textContent = 'Logo actual';
+      contenedor.append(etiqueta);
+    }
+
     function cargarVistaConfig() {
       const state = ConstruFactu.Store.state;
       document.getElementById('cfg-nombre').value = state.empresa.nombre;
       document.getElementById('cfg-email').value = state.auth.email || '';
+      renderizarPreviewLogoEmpresa(state.empresa.logo);
       
       const lic = ConstruFactu.Licensing.obtenerEstado();
       document.getElementById('cfg-badge-licencia').textContent = lic.texto;
@@ -593,9 +748,14 @@
 
         const reader = new FileReader();
         reader.onload = function(e) {
-          ConstruFactu.Store.state.empresa.logo = e.target.result;
+          const logo = e.target && typeof e.target.result === 'string' ? e.target.result : '';
+          ConstruFactu.Store.state.empresa.logo = logo;
           ConstruFactu.Store.state.empresa.updatedAt = Date.now();
+          renderizarPreviewLogoEmpresa(logo);
           avisar('Logotipo cargado correctamente. Guarda los datos para consolidar.');
+        };
+        reader.onerror = function() {
+          avisar('No se pudo leer el archivo del logotipo.', { tipo: 'error' });
         };
         reader.readAsDataURL(archivo);
       }
@@ -641,6 +801,20 @@
 
       state.contadoresVerifactu = state.contadoresVerifactu || {};
       const serieAnterior = state.empresa.serie;
+      const serieActual = serieAnterior || 'F2026';
+      const siguienteNumeroAnterior = (Number(state.contadoresVerifactu[serieActual]) || 0) + 1;
+      const existenFacturasOficiales = (state.documentos || []).some(doc =>
+        doc.tipo === 'factura' && doc.estado === 'Oficial'
+      );
+      if (
+        existenFacturasOficiales &&
+        (serie !== serieActual || siguienteNumero !== siguienteNumeroAnterior) &&
+        !(await confirmar(
+          '¿Estás completamente seguro de que quieres cambiar la numeración? Esta acción modificará cómo se numeran las próximas facturas oficiales.',
+          { aceptar: 'Cambiar numeración', cancelar: 'Mantener actual', peligro: true, titulo: 'Cambio de numeración' }
+        ))
+      ) return;
+
       const updatedAtAnterior = state.empresa.updatedAt;
       const contadorUpdatedAtAnterior = state.contadoresVerifactuUpdatedAt;
       const teniaContador = Object.prototype.hasOwnProperty.call(state.contadoresVerifactu, serie);

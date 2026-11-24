@@ -44,6 +44,23 @@
       box-sizing: border-box;
       margin: 0 auto;
     }
+    .manual-nav-item {
+      width: 100%;
+      border: 1px solid transparent;
+      border-radius: 0.75rem;
+      padding: 0.75rem 1rem;
+      color: #475569;
+      text-align: left;
+      font-size: 0.875rem;
+      font-weight: 700;
+      transition: background-color .15s, color .15s, border-color .15s;
+    }
+    .manual-nav-item:hover { background: #fff; color: #0f172a; }
+    .manual-nav-item.is-active {
+      border-color: #fcd34d;
+      background: #fffbeb;
+      color: #92400e;
+    }
     @page { size: A4 portrait; margin: 0; }
     @media print {
       body * { visibility: hidden; }
@@ -613,33 +630,36 @@
     </section>
 
     <!-- MANUAL DE AYUDA Y GUÍA RÁPIDA -->
-    <section id="view-ayuda" class="hidden flex-1 flex flex-col p-4 sm:p-5 space-y-4 pb-16">
-      <div class="flex items-center gap-3">
-        <button data-click="irA" data-click-args='["menu"]' class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-bold text-lg shadow-sm">‹</button>
-        <h2 class="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">MANUAL DE AYUDA Y GUÍA RÁPIDA</h2>
+    <section id="view-ayuda" class="hidden flex-1 flex flex-col p-4 sm:p-5 pb-16">
+      <div class="flex items-center gap-3 mb-4">
+        <button data-click="irA" data-click-args='["menu"]' aria-label="Volver al menú principal" class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-bold text-lg shadow-sm">‹</button>
+        <div>
+          <div class="text-xs font-bold uppercase tracking-wider text-amber-700">Guía paso a paso</div>
+          <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">Manual de Ayuda</h2>
+        </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-          <img src="assets/help-01-configuracion.svg" alt="" class="w-24 h-24 mb-4 mx-auto object-contain">
-          <h3 class="text-center font-bold text-slate-900 mb-2">1. Configura tu Empresa</h3>
-          <p class="text-sm text-slate-600 text-center">Añade tus datos fiscales, logo y preferencias desde Ajustes.</p>
-        </div>
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-          <img src="assets/help-02-presupuestos.svg" alt="" class="w-24 h-24 mb-4 mx-auto object-contain">
-          <h3 class="text-center font-bold text-slate-900 mb-2">2. Crea Presupuestos</h3>
-          <p class="text-sm text-slate-600 text-center">Prepara presupuestos y albaranes con tus partidas de obra.</p>
-        </div>
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-          <img src="assets/help-03-facturacion.svg" alt="" class="w-24 h-24 mb-4 mx-auto object-contain">
-          <h3 class="text-center font-bold text-slate-900 mb-2">3. Gestiona Facturas</h3>
-          <p class="text-sm text-slate-600 text-center">Emite facturas y rectificativas y consulta su PDF.</p>
-        </div>
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-          <img src="assets/help-04-copia-seguridad.svg" alt="" class="w-24 h-24 mb-4 mx-auto object-contain">
-          <h3 class="text-center font-bold text-slate-900 mb-2">4. Guarda una Copia</h3>
-          <p class="text-sm text-slate-600 text-center">Descarga el respaldo JSON y consérvalo en un lugar seguro.</p>
-        </div>
+      <div class="grid grid-cols-1 md:grid-cols-[260px_minmax(0,1fr)] gap-4 md:gap-6 flex-1 min-h-0">
+        <nav aria-label="Capítulos del manual" class="bg-slate-100 border border-slate-200 rounded-2xl p-3 sm:p-4 h-fit">
+          <h3 class="px-3 pb-2 text-xs font-extrabold uppercase tracking-wider text-slate-500">Capítulos</h3>
+          <div id="manual-capitulos" class="space-y-1">
+            <button type="button" data-click="renderizarManual" data-click-args='["empresa"]' data-manual-capitulo="empresa" class="manual-nav-item">1. Ajustes de Empresa</button>
+            <button type="button" data-click="renderizarManual" data-click-args='["presupuestos"]' data-manual-capitulo="presupuestos" class="manual-nav-item">2. Presupuestos</button>
+            <button type="button" data-click="renderizarManual" data-click-args='["facturacion"]' data-manual-capitulo="facturacion" class="manual-nav-item">3. Facturación</button>
+            <button type="button" data-click="renderizarManual" data-click-args='["gastos"]' data-manual-capitulo="gastos" class="manual-nav-item">4. Gastos</button>
+            <button type="button" data-click="renderizarManual" data-click-args='["tarifario"]' data-manual-capitulo="tarifario" class="manual-nav-item">5. Tarifario</button>
+            <button type="button" data-click="renderizarManual" data-click-args='["sincronizacion"]' data-manual-capitulo="sincronizacion" class="manual-nav-item">6. Sincronización</button>
+            <button type="button" data-click="renderizarManual" data-click-args='["copias"]' data-manual-capitulo="copias" class="manual-nav-item">7. Copias de Seguridad</button>
+            <button type="button" data-click="renderizarManual" data-click-args='["borrado"]' data-manual-capitulo="borrado" class="manual-nav-item">8. Borrado y Cierre</button>
+            <button type="button" data-click="renderizarManual" data-click-args='["estado"]' data-manual-capitulo="estado" class="manual-nav-item">9. Mi Estado y Trimestres</button>
+          </div>
+        </nav>
+
+        <article id="manual-contenido" aria-live="polite" class="bg-white border border-slate-200 rounded-2xl shadow-sm p-5 sm:p-8 min-h-64">
+          <div id="manual-numero" class="text-sm font-bold text-amber-700 mb-2">Capítulo 1</div>
+          <h3 id="manual-titulo" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-5">Ajustes de Empresa</h3>
+          <div id="manual-texto" class="text-base sm:text-lg leading-relaxed text-slate-600">Contenido del capítulo 1 en construcción...</div>
+        </article>
       </div>
     </section>
 
@@ -660,6 +680,7 @@
           <div class="flex items-center gap-3">
             <input type="file" id="cfg-logo-file" accept="image/*" data-change="cargarLogoEmpresa" data-change-args='["$this"]' class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200">
           </div>
+          <div id="logo-preview-container" aria-live="polite" class="mt-2 min-h-10 flex items-center gap-2 text-xs text-slate-500">Ningún archivo seleccionado</div>
         </div>
         <div><label class="block text-xs font-bold text-slate-600 mb-1">Nombre / Razón Social</label><input id="cfg-nombre" type="text" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold"></div>
         <div><label class="block text-xs font-bold text-slate-600 mb-1">NIF / CIF</label><input id="cfg-nif" type="text" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm uppercase font-semibold"></div>
@@ -686,6 +707,7 @@
         <div class="text-xs font-extrabold uppercase tracking-wider text-slate-800 border-b pb-2 flex items-center gap-2">
           <span>🧾</span> Configuración de Facturación
         </div>
+        <p role="alert" class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs font-semibold leading-relaxed text-amber-800">⚠️ ATENCIÓN: No modifiques estos valores si ya has emitido facturas. Cambiar la serie o el número puede causar problemas con Hacienda.</p>
         <div>
           <label for="cfg-serie" class="block text-xs font-bold text-slate-600 mb-1">Serie de Facturación</label>
           <input id="cfg-serie" type="text" autocomplete="off" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm uppercase font-semibold" placeholder="Ej. FAC-2026">
