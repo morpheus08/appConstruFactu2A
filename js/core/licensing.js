@@ -26,7 +26,7 @@
             }
           }
           const facturasEmitidas = (ConstruFactu.Store.state.documentos || []).filter(d =>
-            (d.tipo === 'factura' || d.tipo === 'rectificativa') && d.estado === 'Oficial'
+            !d.deletedAt && (d.tipo === 'factura' || d.tipo === 'rectificativa') && d.estado === 'Oficial'
           ).length;
           if (emp.licenciaTipo === 'prueba' && facturasEmitidas >= 10) {
             return { texto: 'PRUEBA AGOTADA', badgeClass: 'bg-rose-100 text-rose-900', desc: 'Has alcanzado el límite de 10 facturas. Activa tu licencia PRO para seguir facturando.', vigente: false };

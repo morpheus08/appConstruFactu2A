@@ -62,6 +62,7 @@
           const state = ConstruFactu.Store.state;
           document.getElementById('menu-empresa-nombre').textContent = state.empresa.nombre;
           document.getElementById('menu-empresa-nif').textContent = `NIF: ${state.empresa.nif}`;
+          this.actualizarBadgeSincronizacion();
           
           const lic = ConstruFactu.Licensing.obtenerEstado();
           const menuBadge = document.querySelector('#view-menu .bg-amber-100');
@@ -69,18 +70,60 @@
             menuBadge.textContent = lic.texto;
             menuBadge.className = `text-[10px] font-extrabold px-2 py-0.5 rounded ${lic.badgeClass}`;
           }
-          document.getElementById('badge-presupuestos').textContent = state.documentos.filter(d => d.tipo === 'presupuesto').length;
-          document.getElementById('badge-albaranes').textContent = state.documentos.filter(d => d.tipo === 'albaran').length;
-          document.getElementById('badge-facturas').textContent = state.documentos.filter(d => d.tipo === 'factura' || d.tipo === 'rectificativa').length;
-          document.getElementById('badge-clientes').textContent = `${state.clientes.length} registrados`;
-          document.getElementById('badge-gastos').textContent = `${state.gastos.length} gastos`;
-          document.getElementById('badge-tarifario').textContent = `${(state.catalogoPrecios || []).length} partidas`;
+          const documentosActivos = (state.documentos || []).filter(d => !d.deletedAt);
+          const clientesActivos = (state.clientes || []).filter(c => !c.deletedAt);
+          const gastosActivos = (state.gastos || []).filter(g => !g.deletedAt);
+          const tarifarioActivo = (state.catalogoPrecios || []).filter(p => !p.deletedAt);
+          document.getElementById('badge-presupuestos').textContent = documentosActivos.filter(d => d.tipo === 'presupuesto').length;
+          document.getElementById('badge-albaranes').textContent = documentosActivos.filter(d => d.tipo === 'albaran').length;
+          document.getElementById('badge-facturas').textContent = documentosActivos.filter(d => d.tipo === 'factura' || d.tipo === 'rectificativa').length;
+          document.getElementById('badge-clientes').textContent = `${clientesActivos.length} registrados`;
+          document.getElementById('badge-gastos').textContent = `${gastosActivos.length} gastos`;
+          document.getElementById('badge-tarifario').textContent = `${tarifarioActivo.length} partidas`;
           
           const logoBox = document.getElementById('menu-logo-box');
           if (state.empresa.logo) {
             logoBox.innerHTML = `<img src="${/^data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(state.empresa.logo) ? state.empresa.logo : ''}" class="w-full h-full object-cover">`;
           } else {
             logoBox.textContent = 'CF';
+          }
+        },
+        actualizarBadgeSincronizacion() {
+          const badge = document.getElementById('dashboard-sync-status');
+          if (!badge) return;
+          const sincronizado = !!(
+            ConstruFactu.FirebaseSync &&
+            typeof ConstruFactu.FirebaseSync.estaConectado === 'function' &&
+            ConstruFactu.FirebaseSync.estaConectado()
+          );
+          badge.textContent = sincronizado ? '☁️ Conectado' : '☁️ Sin conexión';
+          badge.className = sincronizado
+            ? 'text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800'
+            : 'text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600';
+        },
+        refrescarVistaActual() {
+          if (document.getElementById('view-pdf') && !document.getElementById('view-pdf').classList.contains('hidden')) return;
+          const visible = id => {
+            const elemento = document.getElementById(id);
+            return elemento && !elemento.classList.contains('hidden');
+          };
+
+          if (this.vistaActual === 'login' && typeof window.renderLogoEmpresaLogin === 'function') {
+            window.renderLogoEmpresaLogin();
+          } else if (this.vistaActual === 'menu' && visible('view-menu')) {
+            this.actualizarBadgesMenu();
+          } else if (this.vistaActual === 'clientes' && visible('view-clientes') && typeof window.renderClientes === 'function') {
+            window.renderClientes();
+          } else if (['presupuestos', 'albaranes', 'facturas'].includes(this.vistaActual) && visible('view-docs') && typeof window.renderListadoDocs === 'function') {
+            window.renderListadoDocs();
+          } else if (this.vistaActual === 'gastos' && visible('view-gastos') && typeof window.renderGastos === 'function') {
+            window.renderGastos();
+          } else if (this.vistaActual === 'tarifario' && visible('view-tarifario') && typeof window.renderTarifario === 'function') {
+            window.renderTarifario();
+          } else if (this.vistaActual === 'estado' && visible('view-estado') && typeof window.renderEstado === 'function') {
+            window.renderEstado();
+          } else if (this.vistaActual === 'config' && visible('view-config') && typeof window.cargarVistaConfig === 'function') {
+            window.cargarVistaConfig();
           }
         },
         actualizarBotonScroll() {
@@ -90,6 +133,11 @@
           else btn.classList.add('hidden');
         }
       }
+    });
+
+    window.addEventListener('construfactu:datosActualizados', event => {
+      console.log('[SYNC] Redibujando vista activa tras recibir datos.', event.detail);
+      ConstruFactu.UI.refrescarVistaActual();
     });
 
     /* ═══ DINERO: aritmética en céntimos enteros (sin errores de coma flotante) ═══
@@ -594,11 +642,13 @@
       state.contadoresVerifactu = state.contadoresVerifactu || {};
       const serieAnterior = state.empresa.serie;
       const updatedAtAnterior = state.empresa.updatedAt;
+      const contadorUpdatedAtAnterior = state.contadoresVerifactuUpdatedAt;
       const teniaContador = Object.prototype.hasOwnProperty.call(state.contadoresVerifactu, serie);
       const contadorAnterior = state.contadoresVerifactu[serie];
       state.empresa.serie = serie;
       state.empresa.updatedAt = Date.now();
       state.contadoresVerifactu[serie] = siguienteNumero - 1;
+      state.contadoresVerifactuUpdatedAt = Date.now();
 
       let guardado;
       try {
@@ -609,6 +659,7 @@
         else state.empresa.updatedAt = updatedAtAnterior;
         if (teniaContador) state.contadoresVerifactu[serie] = contadorAnterior;
         else delete state.contadoresVerifactu[serie];
+        state.contadoresVerifactuUpdatedAt = contadorUpdatedAtAnterior;
         console.error('[Ajustes] Error al guardar la numeración:', error);
         avisar('No se pudo guardar la configuración de facturación.', { tipo: 'error' });
         return;
@@ -619,6 +670,7 @@
         else state.empresa.updatedAt = updatedAtAnterior;
         if (teniaContador) state.contadoresVerifactu[serie] = contadorAnterior;
         else delete state.contadoresVerifactu[serie];
+        state.contadoresVerifactuUpdatedAt = contadorUpdatedAtAnterior;
         avisar('No se pudo guardar la configuración de facturación.', { tipo: 'error' });
         return;
       }
@@ -645,19 +697,29 @@
       }
 
       const state = ConstruFactu.Store.state;
+      const timestamp = Date.now();
       if (opciones.presupuestos) {
-        state.documentos = state.documentos.filter(d =>
-          d.tipo === 'factura' ||
-          d.tipo === 'rectificativa' ||
-          d.estado === 'Oficial'
+        state.documentos = (state.documentos || []).map(doc => {
+          if (doc.tipo === 'factura' || doc.tipo === 'rectificativa' || doc.estado === 'Oficial' || doc.deletedAt) return doc;
+          return { ...doc, deletedAt: timestamp, updatedAt: timestamp };
+        });
+      }
+      if (opciones.gastos) {
+        state.gastos = (state.gastos || []).map(gasto =>
+          gasto.deletedAt ? gasto : { ...gasto, deletedAt: timestamp, updatedAt: timestamp }
         );
       }
-      if (opciones.gastos) state.gastos = [];
       if (opciones.clientes) {
-        state.clientes = [];
+        state.clientes = (state.clientes || []).map(cliente =>
+          cliente.deletedAt ? cliente : { ...cliente, deletedAt: timestamp, updatedAt: timestamp }
+        );
         state.proveedores = [];
       }
-      if (opciones.tarifario) state.catalogoPrecios = [];
+      if (opciones.tarifario) {
+        state.catalogoPrecios = (state.catalogoPrecios || []).map(partida =>
+          partida.deletedAt ? partida : { ...partida, deletedAt: timestamp, updatedAt: timestamp }
+        );
+      }
 
       await ConstruFactu.Store.save();
       avisar('Limpieza completada. Tus facturas oficiales siguen a salvo.');
@@ -859,6 +921,11 @@
     window.addEventListener('DOMContentLoaded', async () => {
       await ConstruFactu.Store.init();
       renderLogoEmpresaLogin();
+      if (ConstruFactu.FirebaseSync && typeof ConstruFactu.FirebaseSync.autoConectar === 'function') {
+        ConstruFactu.FirebaseSync.autoConectar().catch(error => {
+          console.error('[FirebaseSync] No se pudo completar la conexión automática:', error);
+        });
+      }
       
       // Activar aviso visual si DEV_MODE es true
       if (typeof DEV_MODE !== 'undefined' && DEV_MODE) {

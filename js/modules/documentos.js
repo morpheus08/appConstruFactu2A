@@ -28,6 +28,7 @@
         async guardar(docObj) {
           const docs = ConstruFactu.Store.state.documentos;
           const idx = docs.findIndex(d => d.id === docObj.id);
+          if (idx !== -1 && docs[idx].deletedAt) return false;
           if (idx !== -1 && docs[idx].estado === 'Oficial' && docs[idx] !== docObj) {
             mostrarAviso('Las facturas oficiales son inmutables. Para corregirla emite una rectificativa.', 'error');
             return false;
@@ -46,7 +47,7 @@
         async eliminar(id) {
           const docs = ConstruFactu.Store.state.documentos;
           const doc = docs.find(d => d.id === id);
-          if (!doc) return false;
+          if (!doc || doc.deletedAt) return false;
           const deletedAtAnterior = doc.deletedAt;
           const updatedAtAnterior = doc.updatedAt;
           const timestamp = Date.now();
@@ -113,7 +114,7 @@ function abrirListadoDocs(seccion) {
 
     async function iniciarRectificativa(originalId) {
       const orig = ConstruFactu.Store.state.documentos.find(d => d.id === originalId);
-      if (!orig) return;
+      if (!orig || orig.deletedAt) return;
       const numRects = ConstruFactu.Documentos.siguienteBorrador('rectificativa');
       const serieRect = ConstruFactu.Store.state.empresa.serieRectificativa || 'R2026';
       const rectDoc = {
@@ -137,7 +138,7 @@ function abrirListadoDocs(seccion) {
 
     function editarDocumentoExistente(id) {
       const doc = ConstruFactu.Store.state.documentos.find(d => d.id === id);
-      if (!doc) return;
+      if (!doc || doc.deletedAt) return;
       vistaAnteriorEditor = doc.tipo === 'presupuesto' ? 'presupuestos' : (doc.tipo === 'albaran' ? 'albaranes' : 'facturas');
       abrirEditorDocumento(id, doc.tipo);
     }
@@ -148,6 +149,10 @@ function abrirListadoDocs(seccion) {
       ocultarTodasLasVistas();
       document.getElementById('view-doc-editor').classList.remove('hidden');
       let doc = docId ? ConstruFactu.Store.state.documentos.find(d => d.id === docId) : null;
+      if (doc && doc.deletedAt) {
+        irA(vistaAnteriorEditor);
+        return;
+      }
       const esRect = tipo === 'rectificativa';
 
       document.getElementById('rectificativa-fields').classList.toggle('hidden', !esRect);
@@ -330,6 +335,7 @@ function abrirListadoDocs(seccion) {
           ? ConstruFactu.Store.state.documentos.find(d => d.id === idOriginal)
           : null;
         if (originalExistente && (
+          originalExistente.deletedAt ||
           originalExistente.tipo !== 'presupuesto' ||
           originalExistente.estado === 'Facturado' ||
           ConstruFactu.Store.state.documentos.some(d => d.origenPresupuestoId === originalExistente.id)
@@ -341,6 +347,7 @@ function abrirListadoDocs(seccion) {
         const presupuesto = await guardarDocumento('silent');
         if (!presupuesto) return;
         if (
+          presupuesto.deletedAt ||
           presupuesto.tipo !== 'presupuesto' ||
           presupuesto.estado === 'Facturado' ||
           ConstruFactu.Store.state.documentos.some(d => d.origenPresupuestoId === presupuesto.id)

@@ -24,5 +24,8 @@ const estadoInicialPorDefecto = {
   ],
   ultimoHashVerifactu: '0000000000000000000000000000000000000000000000000000000000000000',
   verifactuLog: [],
-  contadoresVerifactu: {}
+  verifactuLogUpdatedAt: 0,
+  contadoresVerifactu: {},
+  contadoresVerifactuUpdatedAt: 0,
+  verifactuConflictos: []
 };

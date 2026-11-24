@@ -3,6 +3,7 @@
     generarCSV(desde, hasta) {
       const documentos = ConstruFactu.Store.state.documentos || [];
       const facturas = documentos.filter(doc =>
+        !doc.deletedAt &&
         (doc.tipo === 'factura' || doc.tipo === 'rectificativa') &&
         doc.estado === 'Oficial' &&
         doc.fecha >= desde &&
@@ -36,6 +37,7 @@
 
     generarCSVGastos(desde, hasta) {
       const gastos = (ConstruFactu.Store.state.gastos || []).filter(g =>
+        !g.deletedAt &&
         g.fecha >= desde &&
         g.fecha <= hasta
       );
@@ -64,12 +66,14 @@
     async exportarGestor(desde, hasta) {
       const documentos = ConstruFactu.Store.state.documentos || [];
       const facturas = documentos.filter(doc =>
+        !doc.deletedAt &&
         (doc.tipo === 'factura' || doc.tipo === 'rectificativa') &&
         doc.estado === 'Oficial' &&
         doc.fecha >= desde &&
         doc.fecha <= hasta
       );
       const gastos = (ConstruFactu.Store.state.gastos || []).filter(g =>
+        !g.deletedAt &&
         g.fecha >= desde &&
         g.fecha <= hasta
       );

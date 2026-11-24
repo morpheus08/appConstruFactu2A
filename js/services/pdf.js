@@ -3,7 +3,7 @@
   let docActualPDFId = null;
 function verPDFDocumento(id) {
       const doc = ConstruFactu.Store.state.documentos.find(d => d.id === id);
-      if (!doc) return;
+      if (!doc || doc.deletedAt) return;
       const cli = getCliente(doc.clienteId);
       const tot = calcTotalesDoc(doc);
       const esRect = doc.tipo === 'rectificativa';

@@ -1,6 +1,6 @@
 (function(CF) {
   CF.Clientes = {
-        obtenerTodos() { return ConstruFactu.Store.state.clientes || []; },
+        obtenerTodos() { return (ConstruFactu.Store.state.clientes || []).filter(c => !c.deletedAt); },
         buscar(q) {
           q = (q || '').toLowerCase();
           return this.obtenerTodos().filter(c => c.nombre.toLowerCase().includes(q) || c.nif.toLowerCase().includes(q));
@@ -8,16 +8,35 @@
         async guardar(datos) {
           const cs = ConstruFactu.Store.state.clientes;
           const idx = cs.findIndex(c => c.id === datos.id);
+          const existente = idx !== -1 ? cs[idx] : null;
+          const cliente = {
+            ...datos,
+            updatedAt: Date.now(),
+            deletedAt: existente && existente.deletedAt ? existente.deletedAt : null
+          };
           if (idx !== -1) {
-            cs[idx] = datos;
+            cs[idx] = cliente;
           } else {
-            cs.unshift(datos);
+            cs.unshift(cliente);
           }
-          await ConstruFactu.Store.save();
+          return await ConstruFactu.Store.save();
         },
         async eliminar(id) {
-          ConstruFactu.Store.state.clientes = ConstruFactu.Store.state.clientes.filter(c => c.id !== id);
-          await ConstruFactu.Store.save();
+          const cliente = (ConstruFactu.Store.state.clientes || []).find(c => c.id === id);
+          if (!cliente || cliente.deletedAt) return false;
+          const deletedAtAnterior = cliente.deletedAt;
+          const updatedAtAnterior = cliente.updatedAt;
+          const timestamp = Date.now();
+          cliente.deletedAt = timestamp;
+          cliente.updatedAt = timestamp;
+          if (!(await ConstruFactu.Store.save())) {
+            if (deletedAtAnterior === undefined) delete cliente.deletedAt;
+            else cliente.deletedAt = deletedAtAnterior;
+            if (updatedAtAnterior === undefined) delete cliente.updatedAt;
+            else cliente.updatedAt = updatedAtAnterior;
+            return false;
+          }
+          return true;
         },
         exportarCSV() {
           const filas = [['Nombre', 'NIF', 'Direccion', 'CP', 'Poblacion', 'Telefono', 'Movil', 'Email', 'Observaciones']];
@@ -79,6 +98,10 @@ function getCliente(id) {
       document.getElementById('view-cliente-form').classList.remove('hidden');
       if (id) {
         const c = ConstruFactu.Store.state.clientes.find(x => x.id === id);
+        if (!c || c.deletedAt) {
+          irA('clientes');
+          return;
+        }
         document.getElementById('titulo-form-cliente').textContent = 'EDITAR CLIENTE';
         document.getElementById('cli-id').value = c.id;
         document.getElementById('cli-nombre').value = c.nombre;
@@ -128,7 +151,10 @@ function getCliente(id) {
     async function eliminarCliente() {
       const id = document.getElementById('cli-id').value;
       if ((await confirmar('¿Eliminar este cliente?', { aceptar: 'Eliminar', peligro: true }))) {
-        await ConstruFactu.Clientes.eliminar(id);
+        if (!(await ConstruFactu.Clientes.eliminar(id))) {
+          avisar('No se pudo guardar el borrado del cliente.', { tipo: 'error' });
+          return;
+        }
         irA('clientes');
       }
     }
@@ -212,19 +238,25 @@ function getCliente(id) {
 
           let added = 0, updated = 0, skipped = 0;
           for (let nc of nuevos) {
-            const existingIdx = ConstruFactu.Store.state.clientes.findIndex(c => c.nif.toLowerCase() === nc.nif.toLowerCase());
+            const existingIdx = ConstruFactu.Store.state.clientes.findIndex(c => !c.deletedAt && c.nif.toLowerCase() === nc.nif.toLowerCase());
             if (existingIdx !== -1) {
               if (strategy === 'actualizar') {
-                Object.assign(ConstruFactu.Store.state.clientes[existingIdx], nc);
+                Object.assign(ConstruFactu.Store.state.clientes[existingIdx], nc, { updatedAt: Date.now() });
                 updated++;
               } else if (strategy === 'omitir') {
                 skipped++;
               } else {
-                ConstruFactu.Store.state.clientes.unshift({ id: 'c' + Date.now() + Math.random().toString(36).substring(2, 6), ...nc });
+                ConstruFactu.Store.state.clientes.unshift({
+                  id: 'c' + Date.now() + Math.random().toString(36).substring(2, 6),
+                  ...nc, updatedAt: Date.now(), deletedAt: null
+                });
                 added++;
               }
             } else {
-              ConstruFactu.Store.state.clientes.unshift({ id: 'c' + Date.now() + Math.random().toString(36).substring(2, 6), ...nc });
+              ConstruFactu.Store.state.clientes.unshift({
+                id: 'c' + Date.now() + Math.random().toString(36).substring(2, 6),
+                ...nc, updatedAt: Date.now(), deletedAt: null
+              });
               added++;
             }
           }

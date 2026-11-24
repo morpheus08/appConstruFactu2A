@@ -138,18 +138,27 @@
             registro.huella = await this.sha256(this.cadena(registro));
 
             // Estado previo para rollback si el guardado falla
-            const antes = { numero: doc.numero, estado: doc.estado, hash: doc.hashVerifactu, fhr: doc.fechaHoraRegistro, ultimo: st.ultimoHashVerifactu, cont: contPrev, tenia: serie in st.contadoresVerifactu };
+            const antes = {
+              numero: doc.numero, estado: doc.estado, hash: doc.hashVerifactu, fhr: doc.fechaHoraRegistro,
+              ultimo: st.ultimoHashVerifactu, cont: contPrev, tenia: serie in st.contadoresVerifactu,
+              contadorUpdatedAt: st.contadoresVerifactuUpdatedAt, logUpdatedAt: st.verifactuLogUpdatedAt
+            };
+            const actualizadoEn = Date.now();
             doc.numero = numero; doc.estado = 'Oficial'; doc.hashVerifactu = registro.huella; doc.fechaHoraRegistro = registro.fechaHoraRegistro;
             st.verifactuLog = st.verifactuLog || [];
             st.verifactuLog.push(registro);
             st.ultimoHashVerifactu = registro.huella;
             st.contadoresVerifactu[serie] = n;
+            st.contadoresVerifactuUpdatedAt = actualizadoEn;
+            st.verifactuLogUpdatedAt = actualizadoEn;
 
             if (!(await St.save())) {
               st.verifactuLog.pop();
               doc.numero = antes.numero; doc.estado = antes.estado; doc.hashVerifactu = antes.hash; doc.fechaHoraRegistro = antes.fhr;
               st.ultimoHashVerifactu = antes.ultimo;
               if (antes.tenia) st.contadoresVerifactu[serie] = antes.cont; else delete st.contadoresVerifactu[serie];
+              st.contadoresVerifactuUpdatedAt = antes.contadorUpdatedAt;
+              st.verifactuLogUpdatedAt = antes.logUpdatedAt;
               throw new Error('No se pudo guardar el registro. La factura NO se ha emitido.');
             }
             return doc;

@@ -34,17 +34,19 @@ function renderGastos() {
       
       if (id) {
         const g = (ConstruFactu.Store.state.gastos || []).find(x => x.id === id);
-        if (g) {
-          document.getElementById('gas-id').value = g.id;
-          document.getElementById('gas-nif').value = g.nif || '';
-          document.getElementById('gas-num').value = g.numFactura || '';
-          document.getElementById('gas-fecha').value = g.fecha || new Date().toISOString().split('T')[0];
-          document.getElementById('gas-categoria').value = g.categoria || 'Materiales de obra';
-          document.getElementById('gas-concepto').value = g.concepto || '';
-          document.getElementById('gas-base').value = g.base || '';
-          document.getElementById('gas-iva').value = String(g.iva ?? 21);
-          poblarSelectProveedoresGasto(g.proveedor);
+        if (!g || g.deletedAt) {
+          irA('gastos');
+          return;
         }
+        document.getElementById('gas-id').value = g.id;
+        document.getElementById('gas-nif').value = g.nif || '';
+        document.getElementById('gas-num').value = g.numFactura || '';
+        document.getElementById('gas-fecha').value = g.fecha || new Date().toISOString().split('T')[0];
+        document.getElementById('gas-categoria').value = g.categoria || 'Materiales de obra';
+        document.getElementById('gas-concepto').value = g.concepto || '';
+        document.getElementById('gas-base').value = g.base || '';
+        document.getElementById('gas-iva').value = String(g.iva ?? 21);
+        poblarSelectProveedoresGasto(g.proveedor);
       } else {
         ['gas-id', 'gas-nif', 'gas-num', 'gas-concepto', 'gas-base'].forEach(id => document.getElementById(id).value = '');
         document.getElementById('gas-fecha').value = new Date().toISOString().split('T')[0];
@@ -75,14 +77,15 @@ function renderGastos() {
         base,
         iva: Number(document.getElementById('gas-iva').value),
         updatedAt: Date.now(),
-        deletedAt: id ? undefined : null
+        deletedAt: null
       };
       if (id) {
         const existente = ConstruFactu.Store.state.gastos.find(g => g.id === id);
-        if (existente) datosGasto.deletedAt = existente.deletedAt ?? null;
-      } else {
-        delete datosGasto.deletedAt;
-        datosGasto.deletedAt = null;
+        if (existente && existente.deletedAt) {
+          avisar('Este gasto ya está eliminado. No se puede editar.', { tipo: 'error' });
+          return;
+        }
+        if (existente) datosGasto.deletedAt = existente.deletedAt || null;
       }
 
       if (!ConstruFactu.Store.state.gastos) ConstruFactu.Store.state.gastos = [];
@@ -104,10 +107,20 @@ function renderGastos() {
     async function eliminarGasto(id) {
       if ((await confirmar('¿Eliminar gasto?', { aceptar: 'Eliminar', peligro: true }))) {
         const gasto = (ConstruFactu.Store.state.gastos || []).find(g => g.id === id);
-        if (!gasto) return;
-        gasto.deletedAt = Date.now();
-        gasto.updatedAt = Date.now();
-        await ConstruFactu.Store.save();
+        if (!gasto || gasto.deletedAt) return;
+        const deletedAtAnterior = gasto.deletedAt;
+        const updatedAtAnterior = gasto.updatedAt;
+        const timestamp = Date.now();
+        gasto.deletedAt = timestamp;
+        gasto.updatedAt = timestamp;
+        if (!(await ConstruFactu.Store.save())) {
+          if (deletedAtAnterior === undefined) delete gasto.deletedAt;
+          else gasto.deletedAt = deletedAtAnterior;
+          if (updatedAtAnterior === undefined) delete gasto.updatedAt;
+          else gasto.updatedAt = updatedAtAnterior;
+          avisar('No se pudo guardar el borrado del gasto.', { tipo: 'error' });
+          return;
+        }
         renderGastos();
       }
     }

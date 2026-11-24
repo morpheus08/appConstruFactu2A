@@ -4,6 +4,7 @@
         SCHEMA_VERSION: 3,
         _db: null,
         _queue: Promise.resolve(),
+        _writesPending: 0,
         _avisadoSinIDB: false,
 
         clonarDefecto() { return JSON.parse(JSON.stringify(estadoInicialPorDefecto)); },
@@ -167,21 +168,33 @@
         },
 
         // Guardado serializado (sin escrituras solapadas) y con confirmación real.
-        async save() {
+        async save(opciones) {
+          opciones = opciones === true ? { skipCloudSync: true } : (opciones || {});
           ConstruFactu.Licensing.validarIntegridad();
           this.state._meta = { schemaVersion: this.SCHEMA_VERSION, savedAt: new Date().toISOString() };
           const snapshot = JSON.stringify(this.state);
           const run = this._queue.then(() => this._persistir(snapshot));
           this._queue = run.catch(() => {});
-          const r = await run;
-          if (!r.idb && !r.ls) {
-            mostrarAviso('⚠️ NO se pudieron guardar los cambios. Descarga una copia de seguridad ahora.', 'error');
-          } else if (!r.idb && !this._avisadoSinIDB) {
-            this._avisadoSinIDB = true;
-            mostrarAviso('Almacenamiento principal no disponible: se usa el respaldo reducido. Haz copias de seguridad con frecuencia.', 'aviso');
+          this._writesPending++;
+          window.__construfactu_local_write_pending = true;
+          try {
+            const r = await run;
+            if (!r.idb && !r.ls) {
+              mostrarAviso('⚠️ NO se pudieron guardar los cambios. Descarga una copia de seguridad ahora.', 'error');
+            } else if (!r.idb && !this._avisadoSinIDB) {
+              this._avisadoSinIDB = true;
+              mostrarAviso('Almacenamiento principal no disponible: se usa el respaldo reducido. Haz copias de seguridad con frecuencia.', 'aviso');
+            }
+            try { ConstruFactu.UI.actualizarBadgesMenu(); } catch (e) {}
+            const guardado = r.idb || r.ls;
+            if (guardado && !opciones.skipCloudSync && CF.FirebaseSync && typeof CF.FirebaseSync.subirCambiosBackground === 'function') {
+              CF.FirebaseSync.subirCambiosBackground();
+            }
+            return guardado;
+          } finally {
+            this._writesPending = Math.max(0, this._writesPending - 1);
+            window.__construfactu_local_write_pending = this._writesPending > 0;
           }
-          try { ConstruFactu.UI.actualizarBadgesMenu(); } catch (e) {}
-          return r.idb || r.ls;
         }
       };
 })(window.ConstruFactu);

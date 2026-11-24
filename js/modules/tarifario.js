@@ -1,6 +1,6 @@
 (function(CF) {
   CF.Tarifario = {
-        obtenerTodos() { return ConstruFactu.Store.state.catalogoPrecios || []; },
+        obtenerTodos() { return (ConstruFactu.Store.state.catalogoPrecios || []).filter(p => !p.deletedAt); },
         buscar(q, cap) {
           q = (q || '').toLowerCase();
           return this.obtenerTodos().filter(p => {
@@ -12,16 +12,36 @@
         async guardar(datos) {
           const tp = ConstruFactu.Store.state.catalogoPrecios;
           const idx = tp.findIndex(x => x.id === datos.id);
+          const existente = idx !== -1 ? tp[idx] : null;
+          const timestamp = Date.now();
           if (idx !== -1) {
-            tp[idx] = { ...datos, updatedAt: Date.now() };
+            tp[idx] = {
+              ...existente,
+              ...datos,
+              updatedAt: timestamp,
+              deletedAt: existente.deletedAt || null
+            };
           } else {
-            tp.unshift({ ...datos, updatedAt: Date.now() });
+            tp.unshift({ ...datos, updatedAt: timestamp, deletedAt: null });
           }
-          await ConstruFactu.Store.save();
+          return await ConstruFactu.Store.save();
         },
         async eliminar(id) {
-          ConstruFactu.Store.state.catalogoPrecios = ConstruFactu.Store.state.catalogoPrecios.filter(p => p.id !== id);
-          await ConstruFactu.Store.save();
+          const partida = (ConstruFactu.Store.state.catalogoPrecios || []).find(p => p.id === id);
+          if (!partida || partida.deletedAt) return false;
+          const deletedAtAnterior = partida.deletedAt;
+          const updatedAtAnterior = partida.updatedAt;
+          const timestamp = Date.now();
+          partida.deletedAt = timestamp;
+          partida.updatedAt = timestamp;
+          if (!(await ConstruFactu.Store.save())) {
+            if (deletedAtAnterior === undefined) delete partida.deletedAt;
+            else partida.deletedAt = deletedAtAnterior;
+            if (updatedAtAnterior === undefined) delete partida.updatedAt;
+            else partida.updatedAt = updatedAtAnterior;
+            return false;
+          }
+          return true;
         },
         exportarCSV() {
           const filas = [['Capitulo', 'Concepto', 'Unidad', 'Precio']];
@@ -137,7 +157,7 @@ function renderTarifario() {
             const precio = Number(pr) || 0;
 
             if (concepto) {
-              const existingIdx = ConstruFactu.Store.state.catalogoPrecios.findIndex(p => p.concepto.toLowerCase() === concepto.toLowerCase());
+              const existingIdx = ConstruFactu.Store.state.catalogoPrecios.findIndex(p => !p.deletedAt && p.concepto.toLowerCase() === concepto.toLowerCase());
               if (existingIdx !== -1) {
                 if (strategy === 'actualizar') {
                   ConstruFactu.Store.state.catalogoPrecios[existingIdx] = { ...ConstruFactu.Store.state.catalogoPrecios[existingIdx], capitulo, unidad, precio, updatedAt: Date.now() };
@@ -145,11 +165,17 @@ function renderTarifario() {
                 } else if (strategy === 'omitir') {
                   skipped++;
                 } else {
-                  ConstruFactu.Store.state.catalogoPrecios.unshift({ id: 't' + Date.now() + Math.random().toString(36).substring(2, 6), capitulo, concepto, unidad, precio, updatedAt: Date.now() });
+                  ConstruFactu.Store.state.catalogoPrecios.unshift({
+                    id: 't' + Date.now() + Math.random().toString(36).substring(2, 6),
+                    capitulo, concepto, unidad, precio, updatedAt: Date.now(), deletedAt: null
+                  });
                   added++;
                 }
               } else {
-                ConstruFactu.Store.state.catalogoPrecios.unshift({ id: 't' + Date.now() + Math.random().toString(36).substring(2, 6), capitulo, concepto, unidad, precio });
+                ConstruFactu.Store.state.catalogoPrecios.unshift({
+                  id: 't' + Date.now() + Math.random().toString(36).substring(2, 6),
+                  capitulo, concepto, unidad, precio, updatedAt: Date.now(), deletedAt: null
+                });
                 added++;
               }
             }
@@ -171,6 +197,10 @@ function renderTarifario() {
       document.getElementById('view-tarifario-form').classList.remove('hidden');
       if (id) {
         const p = ConstruFactu.Store.state.catalogoPrecios.find(x => x.id === id);
+        if (!p || p.deletedAt) {
+          irA('tarifario');
+          return;
+        }
         document.getElementById('tar-id').value = p.id;
         document.getElementById('tar-capitulo').value = p.capitulo;
         document.getElementById('tar-concepto').value = p.concepto;
@@ -198,7 +228,10 @@ function renderTarifario() {
 
     async function eliminarPartidaTarifario(id) {
       if ((await confirmar('¿Eliminar partida?', { aceptar: 'Eliminar', peligro: true }))) {
-        await ConstruFactu.Tarifario.eliminar(id);
+        if (!(await ConstruFactu.Tarifario.eliminar(id))) {
+          avisar('No se pudo guardar el borrado de la partida.', { tipo: 'error' });
+          return;
+        }
         renderTarifario();
       }
     }
