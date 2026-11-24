@@ -49,8 +49,12 @@
           this.sesionActiva = destino !== 'login'; this.vistaActual = destino;
           if (!(opts && opts.sinHistorial)) {
             try {
-              if (destino === 'login' || (destino === 'menu' && previa === 'login')) history.replaceState({ cf: 1, v: destino }, '');
-              else if (destino !== previa) history.pushState({ cf: 1, v: destino }, '');
+              const estado = { cf: 1, v: destino, vista: destino };
+              if (destino === 'login' || (destino === 'menu' && previa === 'login')) {
+                history.replaceState(estado, '', '#' + destino);
+              } else if (destino !== previa) {
+                history.pushState(estado, '', '#' + destino);
+              }
             } catch (e) {}
           }
         },
@@ -118,14 +122,19 @@
     // Botón "atrás" del móvil/navegador: vuelve a la vista anterior y cierra visor PDF y ventanas emergentes.
     window.addEventListener('popstate', (e) => {
       const UI = ConstruFactu.UI;
-      let destino = e.state && e.state.cf ? e.state.v : 'login';
-      if (!UI.sesionActiva) destino = 'login';                                 // sin sesión nunca se muestra nada privado
       document.getElementById('view-pdf').classList.add('hidden');
       document.querySelectorAll('[id^="modal-"]').forEach(m => m.classList.add('hidden'));
-      if (destino === 'login' && UI.sesionActiva) { history.pushState({ cf: 1, v: UI.vistaActual }, ''); return; }   // «atrás» en el menú no cierra sesión
+      const estado = e.state && e.state.cf === 1 ? e.state : null;
+      const destino = estado && (estado.vista || estado.v);
+      if (!destino) return; // En Inicio no se añade otro estado: el navegador puede salir de la app.
+      if (destino === 'login' && UI.sesionActiva) return;
+      if (!UI.sesionActiva && destino !== 'login') {
+        UI.irA('login', { sinHistorial: true });
+        return;
+      }
       UI.irA(destino, { sinHistorial: true });
     });
-    try { history.replaceState({ cf: 1, v: 'login' }, ''); } catch (e) {}
+    try { history.replaceState({ cf: 1, v: 'login', vista: 'login' }, '', '#login'); } catch (e) {}
 
     // SheetJS solo se descarga cuando se importa/exporta Excel (la app arranca sin red).
     let _xlsxPromise = null;

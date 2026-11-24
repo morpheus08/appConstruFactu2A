@@ -309,10 +309,14 @@ function verPDFDocumento(id) {
       }
       ventana.opener = null;
 
+      let blobUrl = null;
       try {
         const pdf = await generarPDFVectorial(docActualPDFId);
-        ventana.location.href = pdf.output('bloburl');
+        const blob = pdf.output('blob');
+        blobUrl = URL.createObjectURL(blob);
+        ventana.location.href = blobUrl;
       } catch (e) {
+        if (blobUrl) URL.revokeObjectURL(blobUrl);
         ventana.close();
         avisar('No se pudo generar el PDF: ' + e.message);
       }
