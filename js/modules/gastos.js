@@ -44,11 +44,12 @@ function renderGastos() {
         document.getElementById('gas-fecha').value = g.fecha || new Date().toISOString().split('T')[0];
         document.getElementById('gas-categoria').value = g.categoria || 'Materiales de obra';
         document.getElementById('gas-concepto').value = g.concepto || '';
+        document.getElementById('gas-observaciones').value = g.observaciones || '';
         document.getElementById('gas-base').value = g.base || '';
         document.getElementById('gas-iva').value = String(g.iva ?? 21);
         poblarSelectProveedoresGasto(g.proveedor);
       } else {
-        ['gas-id', 'gas-nif', 'gas-num', 'gas-concepto', 'gas-base'].forEach(id => document.getElementById(id).value = '');
+        ['gas-id', 'gas-nif', 'gas-num', 'gas-concepto', 'gas-observaciones', 'gas-base'].forEach(id => document.getElementById(id).value = '');
         document.getElementById('gas-fecha').value = new Date().toISOString().split('T')[0];
         document.getElementById('gas-iva').value = '21';
         poblarSelectProveedoresGasto();
@@ -74,6 +75,7 @@ function renderGastos() {
         fecha: document.getElementById('gas-fecha').value,
         categoria: document.getElementById('gas-categoria').value,
         concepto: document.getElementById('gas-concepto').value.trim(),
+        observaciones: document.getElementById('gas-observaciones').value.trim(),
         base,
         iva: Number(document.getElementById('gas-iva').value),
         updatedAt: Date.now(),
