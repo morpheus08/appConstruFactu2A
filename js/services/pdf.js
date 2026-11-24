@@ -302,10 +302,20 @@ function verPDFDocumento(id) {
     }
 
     async function descargarArchivoPDFA4() {
+      const ventana = window.open('about:blank', '_blank');
+      if (!ventana) {
+        avisar('El navegador ha bloqueado la pestaña del PDF. Permite ventanas emergentes e inténtalo de nuevo.');
+        return;
+      }
+      ventana.opener = null;
+
       try {
         const pdf = await generarPDFVectorial(docActualPDFId);
-        pdf.save(String(docActualPDFNombre || 'documento.pdf'));
-      } catch (e) { avisar('No se pudo generar el PDF: ' + e.message); }
+        ventana.location.href = pdf.output('bloburl');
+      } catch (e) {
+        ventana.close();
+        avisar('No se pudo generar el PDF: ' + e.message);
+      }
     }
     function cerrarVistaPDF() { document.getElementById('view-pdf').classList.add('hidden'); }
   CF.verPDFDocumento = function() { return verPDFDocumento.apply(this, arguments); };

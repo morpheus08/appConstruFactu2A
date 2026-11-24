@@ -1,7 +1,7 @@
 const DEV_MODE = true; // <-- INTERRUPTOR GLOBAL (Cambiar a false para producción)
 const estadoInicialPorDefecto = {
   auth: { email: '', intentos: 0, bloqueadoHasta: 0 },
-  empresa: { nombre: 'Construcciones García S.L.', nif: 'B41987654', direccion: 'Pol. Ind. El Pino, Nave 12 · 41016 Sevilla', iban: 'ES91 2100 0418 4502 0005 1332', serie: 'F2026', serieRectificativa: 'R2026', logo: '', frecuenciaRecordatorio: '7', fechaCreacionSistema: new Date().toISOString(), licenciaTipo: 'prueba', licenciaExpiracion: '', modoVerifactu: 'no_verifactu' },
+  empresa: { nombre: 'Construcciones García S.L.', nif: 'B41987654', direccion: 'Pol. Ind. El Pino, Nave 12 · 41016 Sevilla', iban: 'ES91 2100 0418 4502 0005 1332', serie: 'F2026', serieRectificativa: 'R2026', logo: '', frecuenciaRecordatorio: '7', fechaCreacionSistema: new Date().toISOString(), licenciaTipo: 'prueba', licenciaExpiracion: '', modoVerifactu: 'no_verifactu', updatedAt: Date.now() },
   unidades: ['ud', 'm²', 'ml', 'm³', 'h', 'pa', 'kg', 'día'],
   catalogoPrecios: [
     { id: 't1', capitulo: 'Revestimientos', concepto: 'Alicatado porcelánico baño/cocina', unidad: 'm²', precio: 32.00 },

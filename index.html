@@ -66,26 +66,21 @@
     </button>
 
     <!-- PANTALLA 1: LOGIN / REGISTRO / RECUPERACIÓN -->
-    <section id="view-login" class="flex-1 flex flex-col justify-between p-6 bg-white relative">
+    <section id="view-login" class="w-full flex-1 min-h-screen flex flex-col items-center justify-between p-6 bg-white relative">
       
       <!-- FRANJA DE AVISO MODO DESARROLLO -->
       <div id="banner-dev-mode" class="hidden absolute top-0 inset-x-0 bg-amber-500 text-slate-950 text-[10px] font-extrabold text-center py-1 uppercase tracking-wider shadow-sm">
         ⚠️ Modo Desarrollo Activo (Acceso rápido permitido)
       </div>
 
-      <div class="pt-6 flex flex-col items-center text-center">
-        <div class="flex flex-col items-center justify-center mb-6">
-          <div class="flex items-center justify-center gap-4">
-            <img src="assets/icono-app.png" alt="" class="w-12 h-12">
-            <img src="assets/logo-construfactu.png" alt="ConstruFactu" class="h-10 object-contain">
-          </div>
-          <p class="text-sm text-slate-500 text-center mb-6">Gestión de presupuestos y facturas</p>
-          <div id="login-brand-empresa" class="flex flex-col items-center justify-center text-center mt-2"></div>
-        </div>
+      <div class="w-full pt-8 flex flex-col items-center text-center">
+        <img src="assets/icono-app.png" alt="Icono de ConstruFactu" class="w-[50px] h-[50px] object-contain">
+        <p class="text-sm text-slate-500 text-center">Gestión de presupuestos y facturas</p>
+        <div id="login-brand-empresa" class="w-full px-2 flex justify-center text-center"></div>
       </div>
 
       <!-- PESTAÑAS LOGIN / REGISTRO -->
-      <div class="my-4 space-y-4">
+      <div class="w-full max-w-sm mx-auto my-4 space-y-4">
         <div class="flex rounded-xl bg-slate-100 p-1 border border-slate-200">
           <button id="tab-btn-login" data-click="cambiarTabLogin" data-click-args='["login"]' class="flex-1 py-2 rounded-lg text-xs font-extrabold bg-slate-900 text-white shadow-sm transition">ACCEDER</button>
           <button id="tab-btn-registro" data-click="cambiarTabLogin" data-click-args='["registro"]' class="flex-1 py-2 rounded-lg text-xs font-extrabold text-slate-600 transition">REGISTRARSE</button>
@@ -152,7 +147,8 @@
         </div>
       </div>
 
-      <div class="text-center pb-2 space-y-1.5">
+      <div class="w-full text-center pb-2 space-y-2">
+        <img src="assets/logo-construfactu.png" alt="ConstruFactu" class="mx-auto w-full max-w-[150px] h-auto">
         <div id="login-licencia-status" class="text-xs text-center text-slate-500 mt-4"></div>
       </div>
     </section>
@@ -394,6 +390,7 @@
               <option value="Borrador">Borrador</option>
               <option value="Enviado">Enviado</option>
               <option value="Aceptado">Aceptado</option>
+              <option value="Facturado" disabled>Facturado (convertido)</option>
               <option value="Rechazado">Rechazado</option>
             </select>
           </div>
@@ -661,10 +658,7 @@
           </div>
         </div>
         <div><label class="block text-xs font-bold text-slate-600 mb-1">Nombre / Razón Social</label><input id="cfg-nombre" type="text" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold"></div>
-        <div class="grid grid-cols-2 gap-2">
-          <div><label class="block text-xs font-bold text-slate-600 mb-1">NIF / CIF</label><input id="cfg-nif" type="text" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm uppercase font-semibold"></div>
-          <div><label class="block text-xs font-bold text-slate-600 mb-1">Serie Facturas</label><input id="cfg-serie" type="text" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm uppercase font-semibold"></div>
-        </div>
+        <div><label class="block text-xs font-bold text-slate-600 mb-1">NIF / CIF</label><input id="cfg-nif" type="text" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm uppercase font-semibold"></div>
         <div><label class="block text-xs font-bold text-slate-600 mb-1">Dirección Fiscal</label><input id="cfg-direccion" type="text" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"></div>
         <div><label class="block text-xs font-bold text-slate-600 mb-1">IBAN Bancario (para facturas)</label><input id="cfg-iban" type="text" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm uppercase"></div>
         <div><label class="block text-xs font-bold text-slate-600 mb-1">Email / Usuario de Acceso</label><input id="cfg-email" type="email" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold"></div>
@@ -683,7 +677,24 @@
         <button data-click="guardarConfigEmpresa" class="w-full py-3.5 rounded-xl bg-slate-900 text-white font-bold text-sm shadow-md">GUARDAR DATOS DE EMPRESA</button>
       </div>
 
-      <!-- 2. COPIA DE SEGURIDAD -->
+      <!-- 2. CONFIGURACIÓN DE FACTURACIÓN -->
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <div class="text-xs font-extrabold uppercase tracking-wider text-slate-800 border-b pb-2 flex items-center gap-2">
+          <span>🧾</span> Configuración de Facturación
+        </div>
+        <div>
+          <label for="cfg-serie" class="block text-xs font-bold text-slate-600 mb-1">Serie de Facturación</label>
+          <input id="cfg-serie" type="text" autocomplete="off" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm uppercase font-semibold" placeholder="Ej. FAC-2026">
+        </div>
+        <div>
+          <label for="cfg-siguiente-numero" class="block text-xs font-bold text-slate-600 mb-1">Siguiente Número</label>
+          <input id="cfg-siguiente-numero" type="number" min="1" step="1" inputmode="numeric" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold">
+          <p class="text-xs text-slate-500 mt-1">Se asignará a la próxima factura oficial emitida.</p>
+        </div>
+        <button data-click="guardarConfiguracionFacturacion" class="w-full py-3.5 rounded-xl bg-indigo-600 text-white font-bold text-sm shadow-md">GUARDAR CONFIGURACIÓN DE FACTURACIÓN</button>
+      </div>
+
+      <!-- 3. COPIA DE SEGURIDAD -->
       <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
         <div class="flex justify-between items-center border-b pb-2">
           <div class="text-xs font-extrabold uppercase tracking-wider text-slate-800 flex items-center gap-2">
@@ -902,7 +913,7 @@
     <section id="view-pdf" class="hidden fixed inset-0 bg-slate-900/95 z-40 overflow-y-auto p-3 flex flex-col">
       <div class="w-full max-w-2xl mx-auto flex justify-between items-center mb-3 no-print sticky top-0 z-50 bg-slate-900/95 py-2">
         <button data-click="cerrarVistaPDF" class="px-4 py-2.5 rounded-xl bg-white text-slate-900 font-bold text-xs">‹ VOLVER</button>
-        <button id="btn-descargar-pdf" data-click="descargarArchivoPDFA4" class="px-4 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-extrabold text-xs">📥 GUARDAR PDF (A4)</button>
+        <button id="btn-descargar-pdf" data-click="descargarArchivoPDFA4" class="px-4 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-extrabold text-xs">👁️ ABRIR PDF (IMPRIMIR / GUARDAR)</button>
       </div>
       <div class="w-full overflow-x-auto pb-8 flex justify-center">
         <div id="print-area" class="hoja-a4 shadow-2xl"></div>

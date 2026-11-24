@@ -502,7 +502,10 @@
       document.getElementById('cfg-desc-licencia').innerHTML = lic.desc;
       
       document.getElementById('cfg-nif').value = state.empresa.nif;
-      document.getElementById('cfg-serie').value = state.empresa.serie || 'F2026';
+      const serie = state.empresa.serie || 'F2026';
+      document.getElementById('cfg-serie').value = serie;
+      const contadorActual = Number((state.contadoresVerifactu || {})[serie]) || 0;
+      document.getElementById('cfg-siguiente-numero').value = String(contadorActual + 1);
       document.getElementById('cfg-direccion').value = state.empresa.direccion || '';
       document.getElementById('cfg-iban').value = state.empresa.iban || '';
       ['cfg-pin-actual', 'cfg-pin-nuevo'].forEach(i => document.getElementById(i).value = '');
@@ -518,6 +521,7 @@
       if (!select) return;
 
       ConstruFactu.Store.state.empresa.modoVerifactu = select.value;
+      ConstruFactu.Store.state.empresa.updatedAt = Date.now();
       await ConstruFactu.Store.save();
       mostrarAviso('Modo de facturación actualizado. A partir de ahora tus nuevas facturas se generarán en este modo.');
     }
@@ -533,6 +537,7 @@
         const reader = new FileReader();
         reader.onload = function(e) {
           ConstruFactu.Store.state.empresa.logo = e.target.result;
+          ConstruFactu.Store.state.empresa.updatedAt = Date.now();
           avisar('Logotipo cargado correctamente. Guarda los datos para consolidar.');
         };
         reader.readAsDataURL(archivo);
@@ -543,10 +548,10 @@
       const state = ConstruFactu.Store.state;
       state.empresa.nombre = document.getElementById('cfg-nombre').value.trim();
       state.empresa.nif = document.getElementById('cfg-nif').value.trim().toUpperCase();
-      state.empresa.serie = document.getElementById('cfg-serie').value.trim().toUpperCase();
       state.empresa.direccion = document.getElementById('cfg-direccion').value.trim();
       state.empresa.iban = document.getElementById('cfg-iban').value.trim().toUpperCase();
       state.empresa.frecuenciaRecordatorio = document.getElementById('cfg-frecuencia').value;
+      state.empresa.updatedAt = Date.now();
       
       const u = document.getElementById('cfg-email').value.trim();
       const pActual = document.getElementById('cfg-pin-actual').value;
@@ -562,6 +567,54 @@
       await ConstruFactu.Store.save();
       avisar('Configuración guardada correctamente.');
       irA('menu');
+    }
+
+    async function guardarConfiguracionFacturacion() {
+      const state = ConstruFactu.Store.state;
+      const serie = document.getElementById('cfg-serie').value.trim().toUpperCase();
+      const siguienteNumero = Number(document.getElementById('cfg-siguiente-numero').value);
+      if (!serie) {
+        avisar('La serie de facturación no puede estar vacía.', { tipo: 'error' });
+        return;
+      }
+      if (!Number.isSafeInteger(siguienteNumero) || siguienteNumero < 1) {
+        avisar('El siguiente número debe ser un entero mayor que cero.', { tipo: 'error' });
+        return;
+      }
+
+      state.contadoresVerifactu = state.contadoresVerifactu || {};
+      const serieAnterior = state.empresa.serie;
+      const updatedAtAnterior = state.empresa.updatedAt;
+      const teniaContador = Object.prototype.hasOwnProperty.call(state.contadoresVerifactu, serie);
+      const contadorAnterior = state.contadoresVerifactu[serie];
+      state.empresa.serie = serie;
+      state.empresa.updatedAt = Date.now();
+      state.contadoresVerifactu[serie] = siguienteNumero - 1;
+
+      let guardado;
+      try {
+        guardado = await ConstruFactu.Store.save();
+      } catch (error) {
+        state.empresa.serie = serieAnterior;
+        if (updatedAtAnterior === undefined) delete state.empresa.updatedAt;
+        else state.empresa.updatedAt = updatedAtAnterior;
+        if (teniaContador) state.contadoresVerifactu[serie] = contadorAnterior;
+        else delete state.contadoresVerifactu[serie];
+        console.error('[Ajustes] Error al guardar la numeración:', error);
+        avisar('No se pudo guardar la configuración de facturación.', { tipo: 'error' });
+        return;
+      }
+      if (!guardado) {
+        state.empresa.serie = serieAnterior;
+        if (updatedAtAnterior === undefined) delete state.empresa.updatedAt;
+        else state.empresa.updatedAt = updatedAtAnterior;
+        if (teniaContador) state.contadoresVerifactu[serie] = contadorAnterior;
+        else delete state.contadoresVerifactu[serie];
+        avisar('No se pudo guardar la configuración de facturación.', { tipo: 'error' });
+        return;
+      }
+
+      avisar('Configuración de facturación guardada correctamente.');
     }
 
     async function limpiarDatosDemostraciónSeguro() {
@@ -753,15 +806,22 @@
       const empresa = (ConstruFactu.Store.state || {}).empresa || {};
       if (contenedor) {
         contenedor.replaceChildren();
-        if (typeof empresa.logo === 'string' && /^data:image\/[^;]+;base64,/.test(empresa.logo)) {
+        if (typeof empresa.logo === 'string' && empresa.logo.startsWith('data:image/')) {
           const img = document.createElement('img');
           img.src = empresa.logo;
           img.alt = empresa.nombre || 'Logo de la empresa';
-          img.className = 'max-h-16 object-contain';
+          img.style.cssText = 'max-width: 380px; width: 100%; height: auto; margin: 20px 0;';
+          img.onerror = () => {
+            contenedor.replaceChildren();
+            const nombre = document.createElement('div');
+            nombre.className = 'text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 my-5';
+            nombre.textContent = empresa.nombre || 'ConstruFactu';
+            contenedor.appendChild(nombre);
+          };
           contenedor.appendChild(img);
         } else if (typeof empresa.nombre === 'string' && empresa.nombre.trim()) {
           const nombre = document.createElement('div');
-          nombre.className = 'text-lg font-extrabold text-slate-700';
+          nombre.className = 'text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 my-5';
           nombre.textContent = empresa.nombre.trim();
           contenedor.appendChild(nombre);
         }

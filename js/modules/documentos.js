@@ -63,6 +63,7 @@
         }
       };
   let albaranesSeleccionados = new Set();
+      let conversionProformaEnCurso = false;
   let filtroListadoActual = 'presupuestos';
 function abrirListadoDocs(seccion) {
       filtroListadoActual = seccion;
@@ -160,7 +161,11 @@ function abrirListadoDocs(seccion) {
         document.getElementById('doc-fecha').value = doc.fecha;
         document.getElementById('doc-iva').value = String(doc.iva);
         
-        if (tipo === 'presupuesto') document.getElementById('doc-estado').value = doc.estado || 'Borrador';
+        if (tipo === 'presupuesto') {
+          const selectorEstado = document.getElementById('doc-estado');
+          selectorEstado.disabled = doc.estado === 'Facturado';
+          selectorEstado.value = doc.estado || 'Borrador';
+        }
         if (esRect) {
           document.getElementById('doc-factura-rectificada').value = doc.facturaRectificadaNum || '';
           document.getElementById('doc-motivo-rectificacion').value = doc.motivoRectificacion || '';
@@ -173,11 +178,19 @@ function abrirListadoDocs(seccion) {
         document.getElementById('doc-obra').value = '';
         document.getElementById('doc-fecha').value = new Date().toISOString().split('T')[0];
         document.getElementById('doc-iva').value = '21';
-        if (tipo === 'presupuesto') document.getElementById('doc-estado').value = 'Borrador';
+        if (tipo === 'presupuesto') {
+          const selectorEstado = document.getElementById('doc-estado');
+          selectorEstado.disabled = false;
+          selectorEstado.value = 'Borrador';
+        }
         lineasEditorTemp = [{ concepto: '', cantidad: 1, unidad: 'ud', precio: 0 }];
       }
 
-      document.getElementById('btn-convertir-proforma').classList.toggle('hidden', tipo === 'factura' || tipo === 'rectificativa');
+      const yaConvertido = doc && (
+        doc.estado === 'Facturado' ||
+        ConstruFactu.Store.state.documentos.some(d => d.origenPresupuestoId === doc.id)
+      );
+      document.getElementById('btn-convertir-proforma').classList.toggle('hidden', tipo !== 'presupuesto' || yaConvertido);
       document.getElementById('btn-emitir-verifactu').classList.toggle('hidden', tipo !== 'factura' && tipo !== 'rectificativa');
 
       renderLineasEditor();
@@ -301,17 +314,104 @@ function abrirListadoDocs(seccion) {
     }
 
     async function convertirAProformaDesdeEditor() {
-      const doc = await guardarDocumento('silent');
-      if (!doc) return;
-      if (doc.estado === 'Oficial') return;
-      doc.tipo = 'factura';
-      const count = ConstruFactu.Documentos.siguienteBorrador('factura');
-      doc.numero = `PROFORMA-${String(count).padStart(3, '0')}`;
-      doc.estado = 'Proforma';
-      if (!(await ConstruFactu.Store.save())) return;
-      avisar('✅ El presupuesto se ha convertido en Factura Proforma con éxito.');
-      vistaAnteriorEditor = 'facturas';
-      abrirEditorDocumento(doc.id, 'factura');
+      if (conversionProformaEnCurso) return;
+      conversionProformaEnCurso = true;
+      const boton = document.getElementById('btn-convertir-proforma');
+      if (boton) boton.disabled = true;
+
+      try {
+        if (document.getElementById('doc-tipo').value !== 'presupuesto') {
+          avisar('Solo se pueden convertir presupuestos en facturas proforma.', { tipo: 'error' });
+          return;
+        }
+
+        const idOriginal = document.getElementById('doc-id').value;
+        const originalExistente = idOriginal
+          ? ConstruFactu.Store.state.documentos.find(d => d.id === idOriginal)
+          : null;
+        if (originalExistente && (
+          originalExistente.tipo !== 'presupuesto' ||
+          originalExistente.estado === 'Facturado' ||
+          ConstruFactu.Store.state.documentos.some(d => d.origenPresupuestoId === originalExistente.id)
+        )) {
+          avisar('Este presupuesto ya se ha convertido en una factura proforma.', { tipo: 'error' });
+          return;
+        }
+
+        const presupuesto = await guardarDocumento('silent');
+        if (!presupuesto) return;
+        if (
+          presupuesto.tipo !== 'presupuesto' ||
+          presupuesto.estado === 'Facturado' ||
+          ConstruFactu.Store.state.documentos.some(d => d.origenPresupuestoId === presupuesto.id)
+        ) {
+          avisar('Este presupuesto ya se ha convertido en una factura proforma.', { tipo: 'error' });
+          return;
+        }
+
+        const estado = ConstruFactu.Store.state;
+        const documentos = estado.documentos;
+        const fechaActual = new Date();
+        const fecha = [
+          fechaActual.getFullYear(),
+          String(fechaActual.getMonth() + 1).padStart(2, '0'),
+          String(fechaActual.getDate()).padStart(2, '0')
+        ].join('-');
+        let nuevoId;
+        do {
+          nuevoId = 'd' + Date.now() + Math.random().toString(36).substring(2, 8);
+        } while (documentos.some(d => d.id === nuevoId));
+
+        const numeroProforma = ConstruFactu.Documentos.siguienteBorrador('factura');
+        const proforma = {
+          id: nuevoId,
+          tipo: 'factura',
+          numero: `PROFORMA-${String(numeroProforma).padStart(3, '0')}`,
+          clienteId: presupuesto.clienteId,
+          obra: presupuesto.obra || '',
+          fecha,
+          iva: presupuesto.iva,
+          estado: 'Proforma',
+          observaciones: presupuesto.observaciones || '',
+          lineas: (presupuesto.lineas || []).map(linea => ({ ...linea })),
+          origenPresupuestoId: presupuesto.id,
+          updatedAt: Date.now(),
+          deletedAt: null
+        };
+        const estadoAnterior = presupuesto.estado;
+        const updatedAtAnterior = presupuesto.updatedAt;
+        presupuesto.estado = 'Facturado';
+        presupuesto.updatedAt = Date.now();
+        documentos.unshift(proforma);
+
+        const restaurarCambios = () => {
+          const indiceProforma = documentos.indexOf(proforma);
+          if (indiceProforma !== -1) documentos.splice(indiceProforma, 1);
+          presupuesto.estado = estadoAnterior;
+          if (updatedAtAnterior === undefined) delete presupuesto.updatedAt;
+          else presupuesto.updatedAt = updatedAtAnterior;
+        };
+        let guardado;
+        try {
+          guardado = await ConstruFactu.Store.save();
+        } catch (error) {
+          restaurarCambios();
+          console.error('[Documentos] Error al guardar la conversión a proforma:', error);
+          avisar('No se pudo guardar la conversión. El presupuesto se ha conservado sin cambios.', { tipo: 'error' });
+          return;
+        }
+        if (!guardado) {
+          restaurarCambios();
+          avisar('No se pudo guardar la conversión. El presupuesto se ha conservado sin cambios.', { tipo: 'error' });
+          return;
+        }
+
+        avisar('✅ El presupuesto se ha convertido en una factura proforma.');
+        irA('facturas');
+      } finally {
+        conversionProformaEnCurso = false;
+        if (boton) boton.disabled = false;
+      }
     }
   CF.abrirListadoDocs = function() { return abrirListadoDocs.apply(this, arguments); };
   window.abrirListadoDocs = CF.abrirListadoDocs;

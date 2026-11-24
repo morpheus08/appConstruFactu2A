@@ -13,9 +13,9 @@
           const tp = ConstruFactu.Store.state.catalogoPrecios;
           const idx = tp.findIndex(x => x.id === datos.id);
           if (idx !== -1) {
-            tp[idx] = datos;
+            tp[idx] = { ...datos, updatedAt: Date.now() };
           } else {
-            tp.unshift(datos);
+            tp.unshift({ ...datos, updatedAt: Date.now() });
           }
           await ConstruFactu.Store.save();
         },
@@ -140,12 +140,12 @@ function renderTarifario() {
               const existingIdx = ConstruFactu.Store.state.catalogoPrecios.findIndex(p => p.concepto.toLowerCase() === concepto.toLowerCase());
               if (existingIdx !== -1) {
                 if (strategy === 'actualizar') {
-                  ConstruFactu.Store.state.catalogoPrecios[existingIdx] = { ...ConstruFactu.Store.state.catalogoPrecios[existingIdx], capitulo, unidad, precio };
+                  ConstruFactu.Store.state.catalogoPrecios[existingIdx] = { ...ConstruFactu.Store.state.catalogoPrecios[existingIdx], capitulo, unidad, precio, updatedAt: Date.now() };
                   updated++;
                 } else if (strategy === 'omitir') {
                   skipped++;
                 } else {
-                  ConstruFactu.Store.state.catalogoPrecios.unshift({ id: 't' + Date.now() + Math.random().toString(36).substring(2, 6), capitulo, concepto, unidad, precio });
+                  ConstruFactu.Store.state.catalogoPrecios.unshift({ id: 't' + Date.now() + Math.random().toString(36).substring(2, 6), capitulo, concepto, unidad, precio, updatedAt: Date.now() });
                   added++;
                 }
               } else {

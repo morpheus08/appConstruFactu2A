@@ -89,8 +89,8 @@
                 mapa.set(remoto.id, remoto);
             } else {
                 // Si está en ambos, gana el más reciente (updatedAt)
-                const tLocal = Number(local.updatedAt) || 0;
-                const tRemoto = Number(remoto.updatedAt) || 0;
+                const tLocal = tiempoActualizado(local.updatedAt);
+                const tRemoto = tiempoActualizado(remoto.updatedAt);
                 if (tRemoto > tLocal) {
                     mapa.set(remoto.id, remoto);
                 }
@@ -99,6 +99,29 @@
         });
 
         return Array.from(mapa.values());
+    }
+
+    function tiempoActualizado(valor) {
+        if (typeof valor === 'number') return valor;
+        if (typeof valor === 'string') {
+            const numero = Number(valor);
+            if (Number.isFinite(numero) && numero > 0) return numero;
+            const fecha = Date.parse(valor);
+            if (!Number.isNaN(fecha)) return fecha;
+        }
+        return 0;
+    }
+
+    function fusionarEmpresa(local, remota) {
+        if (!remota) return { empresa: local, cambio: false };
+        if (!local) return { empresa: remota, cambio: true };
+
+        const tiempoLocal = tiempoActualizado(local.updatedAt);
+        const tiempoRemoto = tiempoActualizado(remota.updatedAt);
+        if (!tiempoLocal || !Object.prototype.hasOwnProperty.call(remota, 'updatedAt') || tiempoRemoto > tiempoLocal) {
+            return { empresa: remota, cambio: true };
+        }
+        return { empresa: local, cambio: false };
     }
 
     // 5. Sincronizar (Pull + Merge + Push)
@@ -119,7 +142,7 @@
             }
             throw err;
         }
-        let datosNube = { clientes: [], documentos: [], gastos: [], catalogoPrecios: [] };
+        let datosNube = { clientes: [], documentos: [], gastos: [], catalogoPrecios: [], tarifario: [], empresa: null };
 
         if (docSnap.exists) {
             datosNube = docSnap.data();
@@ -137,27 +160,45 @@
         estadoLocal.documentos = fusionarArrays(estadoLocal.documentos, datosNube.documentos);
         estadoLocal.gastos = fusionarArrays(estadoLocal.gastos, datosNube.gastos);
 
+        const tarifarioRemoto = Array.isArray(datosNube.tarifario)
+            ? datosNube.tarifario
+            : (datosNube.catalogoPrecios || []);
+        const tarifarioLocal = estadoLocal.catalogoPrecios || estadoLocal.tarifario || [];
+        const tarifarioFinal = fusionarArrays(tarifarioLocal, tarifarioRemoto);
+        estadoLocal.catalogoPrecios = tarifarioFinal;
+        estadoLocal.tarifario = tarifarioFinal;
+
+        if (!estadoLocal.empresa) estadoLocal.empresa = {};
+        const resultadoEmpresa = fusionarEmpresa(estadoLocal.empresa, datosNube.empresa);
+        if (resultadoEmpresa.cambio) {
+            estadoLocal.empresa = resultadoEmpresa.empresa;
+        }
+        if (!estadoLocal.empresa.updatedAt) {
+            estadoLocal.empresa.updatedAt = Date.now();
+        }
+
         console.log(
             `Clientes locales: ${clientesLocales}, Clientes nube: ${clientesNube}, Clientes finales: ${estadoLocal.clientes.length}; ` +
             `Documentos locales: ${documentosLocales}, Documentos nube: ${documentosNube}, Documentos finales: ${estadoLocal.documentos.length}; ` +
             `Gastos locales: ${gastosLocales}, Gastos nube: ${gastosNube}, Gastos finales: ${estadoLocal.gastos.length}`
         );
 
-        // El tarifario no suele tener updatedAt, así que si hay local, gana local.
-        if (datosNube.catalogoPrecios && estadoLocal.catalogoPrecios.length === 0) {
-            estadoLocal.catalogoPrecios = datosNube.catalogoPrecios;
-        }
-
         // Guardamos el resultado fusionado en IndexedDB
         await ConstruFactu.Store.save();
 
+        if (resultadoEmpresa.cambio && typeof window.renderLogoEmpresaLogin === 'function') {
+            window.renderLogoEmpresaLogin();
+        }
+
         // --- FASE 3: PUSH (Enviar a la nube) ---
-        // Subimos el estado fusionado. (Nota: excluimos el logo temporalmente para evitar saturar si fuera muy grande)
+        // Subimos el estado fusionado, incluida la configuración y el logo de la empresa.
         const estadoParaNube = {
             clientes: estadoLocal.clientes,
             documentos: estadoLocal.documentos,
             gastos: estadoLocal.gastos,
             catalogoPrecios: estadoLocal.catalogoPrecios,
+            tarifario: estadoLocal.tarifario,
+            empresa: estadoLocal.empresa,
             _lastSync: Date.now()
         };
         await docRef.set(estadoParaNube, { merge: true });
