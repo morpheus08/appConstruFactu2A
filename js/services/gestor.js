@@ -10,8 +10,6 @@
         doc.fecha <= hasta
       );
 
-      if (!facturas.length) return '';
-
       const filas = ['Tipo;Numero;Fecha;NIF_Cliente;Nombre_Cliente;Base_Imponible;IVA;Total;Huella_VeriFactu'];
       const escapar = valor => String(valor == null ? '' : valor).replace(/"/g, '""');
       const euro = valor => Number(valor).toFixed(2).replace('.', ',');
@@ -78,12 +76,10 @@
         g.fecha <= hasta
       );
 
-      if (!facturas.length && !gastos.length) throw new Error('No hay facturas ni gastos en ese periodo.');
-
       const csvString = this.generarCSV(desde, hasta);
       const csvGastos = this.generarCSVGastos(desde, hasta);
       const zip = new JSZip();
-      zip.file('Resumen_Facturas.csv', csvString);
+      zip.file('Libro_Facturas_Emitidas.csv', csvString);
       zip.file('Libro_Gastos.csv', csvGastos);
 
       for (const doc of facturas) {

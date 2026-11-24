@@ -357,10 +357,6 @@
         <h2 id="docs-titulo" class="text-xl font-extrabold text-slate-900 flex-1">DOCUMENTOS</h2>
       </div>
       <button id="btn-nuevo-doc" data-click="nuevoDocumento" class="w-full py-3.5 rounded-xl bg-slate-900 text-white font-bold text-sm mb-3">+ NUEVO DOCUMENTO</button>
-      <div id="gestoria-export-actions" class="hidden mb-3">
-        <button id="btn-exportar-gestoria" data-click="descargarGestoriaPorFechas" class="w-full py-3.5 rounded-xl bg-slate-900 text-white font-bold text-sm">📦 Exportar Facturas y Gastos para Gestoría</button>
-        <div class="text-xs text-slate-500 text-center mt-2">Incluye PDFs y libros CSV</div>
-      </div>
       <div id="barra-agrupar-albaranes" class="hidden mb-3 p-3 rounded-xl bg-amber-50 border border-amber-300 flex items-center justify-between">
         <span id="txt-albaranes-sel" class="text-xs font-bold text-amber-900">0 albaranes marcados</span>
         <button data-click="unificarAlbaranesEnProforma" class="px-3 py-2 rounded-lg bg-amber-600 text-white font-extrabold text-xs">UNIFICAR EN PROFORMA</button>
@@ -623,6 +619,7 @@
         </div>
         <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2.5">
           <h3 class="text-xs font-extrabold uppercase text-slate-600">Exportación Gestoría</h3>
+          <button data-click="exportarGestoriaSeleccionada" class="w-full py-3 rounded-xl bg-slate-900 text-white font-bold text-sm">📦 Exportar TODO para Gestoría (PDFs + CSVs)</button>
           <button data-click="exportarCSVFacturas" class="w-full py-3 rounded-xl bg-emerald-700 text-white font-bold text-xs">📥 LIBRO FACTURAS EMITIDAS Y RECTIFICATIVAS (.CSV)</button>
           <button data-click="exportarCSVGastos" class="w-full py-3 rounded-xl bg-rose-700 text-white font-bold text-xs">📥 LIBRO GASTOS (.CSV)</button>
         </div>
