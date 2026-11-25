@@ -15,7 +15,7 @@
           });
         },
         sesionActiva: false, vistaActual: 'login',
-        irA(destino, opts) {
+        irA(destino, esPopState = false) {
           this.ocultarTodas();
           if (destino === 'login') {
             document.getElementById('view-login').classList.remove('hidden');
@@ -48,15 +48,17 @@
           setTimeout(this.actualizarBotonScroll, 80);
           const previa = this.vistaActual;
           this.sesionActiva = destino !== 'login'; this.vistaActual = destino;
-          if (!(opts && opts.sinHistorial)) {
+          if (!esPopState && destino !== previa) {
             try {
-              const estado = { cf: 1, v: destino, vista: destino };
-              if (destino === 'login' || (destino === 'menu' && previa === 'login')) {
+              const estado = { vista: destino };
+              if (destino === 'menu' && previa === 'login') {
                 history.replaceState(estado, '', '#' + destino);
-              } else if (destino !== previa) {
+              } else {
                 history.pushState(estado, '', '#' + destino);
               }
-            } catch (e) {}
+            } catch (error) {
+              console.error('[navegación] No se pudo actualizar el historial:', error);
+            }
           }
         },
         actualizarBadgesMenu() {
@@ -300,21 +302,24 @@
     })();
 
     // Botón "atrás" del móvil/navegador: vuelve a la vista anterior y cierra visor PDF y ventanas emergentes.
-    window.addEventListener('popstate', (e) => {
+    window.addEventListener('popstate', (event) => {
       const UI = ConstruFactu.UI;
       document.getElementById('view-pdf').classList.add('hidden');
       document.querySelectorAll('[id^="modal-"]').forEach(m => m.classList.add('hidden'));
-      const estado = e.state && e.state.cf === 1 ? e.state : null;
-      const destino = estado && (estado.vista || estado.v);
+      const destino = event.state?.vista;
       if (!destino) return; // En Inicio no se añade otro estado: el navegador puede salir de la app.
       if (destino === 'login' && UI.sesionActiva) return;
       if (!UI.sesionActiva && destino !== 'login') {
-        UI.irA('login', { sinHistorial: true });
+        UI.irA('login', true);
         return;
       }
-      UI.irA(destino, { sinHistorial: true });
+      UI.irA(destino, true);
     });
-    try { history.replaceState({ cf: 1, v: 'login', vista: 'login' }, '', '#login'); } catch (e) {}
+    try {
+      history.replaceState({ vista: ConstruFactu.UI.vistaActual }, '', '#' + ConstruFactu.UI.vistaActual);
+    } catch (error) {
+      console.error('[navegación] No se pudo guardar la vista inicial en el historial:', error);
+    }
 
     // SheetJS solo se descarga cuando se importa/exporta Excel (la app arranca sin red).
     let _xlsxPromise = null;
@@ -605,8 +610,12 @@
       ConstruFactu.UI.ocultarTodas();
     }
 
-    function irA(destino, opts) {
-      ConstruFactu.UI.irA(destino, opts);
+    function irA(vista, esPopState = false) {
+      ConstruFactu.UI.irA(vista, esPopState);
+    }
+
+    function volverAtras() {
+      history.back();
     }
 
     function actualizarBadgesMenu() {
