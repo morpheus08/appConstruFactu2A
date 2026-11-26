@@ -1,4 +1,4 @@
-const DEV_MODE = true; // <-- INTERRUPTOR GLOBAL (Cambiar a false para producción)
+const DEV_MODE = false; // <-- INTERRUPTOR GLOBAL (Cambiar a false para producción)
 const estadoInicialPorDefecto = {
   VERIFACTU_ENABLED: false, // <-- Interruptor Verifactu (desactivado por defecto)
   auth: { email: '', intentos: 0, bloqueadoHasta: 0 },
