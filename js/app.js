@@ -903,15 +903,37 @@
         return;
       }
 
-      ConstruFactu.Store.state = ConstruFactu.Store.clonarDefecto();
-      await new Promise((resolve, reject) => {
-        const req = indexedDB.deleteDatabase(ConstruFactu.DB_NAME);
-        req.onsuccess = () => resolve();
-        req.onerror = () => reject();
-        req.onblocked = () => resolve();
-      });
-      localStorage.clear();
-      window.location.reload();
+      const store = window.ConstruFactu.Store;
+      const estadoAnterior = store.state;
+      store.state = store.clonarDefecto();
+
+      try {
+        await store._queue;
+        if (store._db) {
+          store._db.close();
+          store._db = null;
+        }
+
+        await new Promise((resolve, reject) => {
+          const req = indexedDB.deleteDatabase('ConstruFactuDB_v0928');
+          req.onsuccess = () => resolve();
+          req.onerror = () => reject(req.error || new Error('No se pudo borrar la base de datos.'));
+          req.onblocked = () => {
+            avisar('Cierra las otras pestañas de ConstruFactu para poder borrar la base de datos.', {
+              tipo: 'aviso',
+              titulo: 'Base de datos en uso'
+            });
+          };
+        });
+
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.reload();
+      } catch (error) {
+        store.state = estadoAnterior;
+        console.error('[cierre empresa] No se pudo completar la purga local:', error);
+        await avisar('No se pudo completar el cierre de la empresa. ' + error.message, { tipo: 'error' });
+      }
     }
 
     function cerrarSesion() { irA('login'); }
