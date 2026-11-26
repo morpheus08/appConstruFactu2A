@@ -1104,5 +1104,49 @@
 
       actualizarBadgesMenu();
       ConstruFactu.VeriFactu.verificarCadena().then(r => { if (!r.ok) mostrarAviso('⚠️ Veri*factu: ' + r.errores[0], 'error'); }).catch(() => {});
+      if (window.ConstruFactu.DispositivoMaestro) {
+        window.ConstruFactu.DispositivoMaestro.init();
+      }
+
+      const botonExportarBackup = document.getElementById('btn-exportar-backup');
+      const botonImportarBackup = document.getElementById('btn-importar-backup');
+      const inputFileBackup = document.getElementById('input-file-backup');
+      const fechaUltimoBackup = document.getElementById('ultimo-backup-fecha');
+      const actualizarFechaUltimoBackup = () => {
+        const ultimoExportEn = window.ConstruFactu.Store.state.backupConfig?.ultimoExportEn;
+        if (!ultimoExportEn) {
+          fechaUltimoBackup.textContent = 'Sin copias realizadas';
+          return;
+        }
+
+        const fecha = new Date(ultimoExportEn);
+        fechaUltimoBackup.textContent = Number.isNaN(fecha.getTime())
+          ? 'Fecha no disponible'
+          : fecha.toLocaleString('es-ES');
+      };
+
+      if (botonExportarBackup) {
+        botonExportarBackup.addEventListener('click', async () => {
+          const exportado = await window.ConstruFactu.VerifactuBackup.exportar();
+          if (exportado) actualizarFechaUltimoBackup();
+        });
+      }
+
+      if (botonImportarBackup && inputFileBackup) {
+        botonImportarBackup.addEventListener('click', () => inputFileBackup.click());
+        inputFileBackup.addEventListener('change', async () => {
+          const file = inputFileBackup.files[0];
+          if (!file) return;
+
+          try {
+            const importado = await window.ConstruFactu.VerifactuBackup.importar(file);
+            if (importado) actualizarFechaUltimoBackup();
+          } finally {
+            inputFileBackup.value = '';
+          }
+        });
+      }
+
+      if (fechaUltimoBackup) actualizarFechaUltimoBackup();
     });
   

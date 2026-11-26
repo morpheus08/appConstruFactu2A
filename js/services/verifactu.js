@@ -99,6 +99,21 @@
         },
 
         async emitirOficial(docId) {
+          const estado = window.ConstruFactu.Store.state;
+
+          if (estado.VERIFACTU_ENABLED) {
+            if (estado.dispositivoRol !== 'maestro') {
+              throw new Error('Operación bloqueada: Este dispositivo es un satélite y no puede emitir facturas oficiales.');
+            }
+            if (
+              estado.backupConfig &&
+              estado.backupConfig.exportObligatorioAntesDeEmitir &&
+              !estado.backupConfig.ultimoExportEn
+            ) {
+              throw new Error('Operación bloqueada: Debes configurar y realizar una copia de seguridad antes de emitir la primera factura oficial.');
+            }
+          }
+
           const lic = ConstruFactu.Licensing.obtenerEstado();
           if (lic.vigente === false) {
             throw new Error('Límite de prueba alcanzado. Por favor, adquiere una licencia PRO para emitir más facturas.');
