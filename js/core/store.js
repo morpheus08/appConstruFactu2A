@@ -89,7 +89,14 @@
             req.onsuccess = () => {
               const db = req.result;
               db.onclose = () => { this._db = null; };
-              db.onversionchange = () => { db.close(); this._db = null; };
+              db.onversionchange = (event) => {
+                if (event.newVersion === null) {
+                  window.__construfactu_purge_in_progress = true;
+                  window.__construfactu_local_write_pending = true;
+                }
+                db.close();
+                this._db = null;
+              };
               this._db = db;
               resolve(db);
             };
@@ -162,13 +169,16 @@
             });
             idb = true;
           } catch (e) { console.error('[Store] IndexedDB:', e); }
-          try { localStorage.setItem('construfactu_fallback_v2', snapshot); ls = true; }
-          catch (e) { console.warn('[Store] localStorage:', e); }
+          if (!window.__construfactu_purge_in_progress) {
+            try { localStorage.setItem('construfactu_fallback_v2', snapshot); ls = true; }
+            catch (e) { console.warn('[Store] localStorage:', e); }
+          }
           return { idb, ls };
         },
 
         // Guardado serializado (sin escrituras solapadas) y con confirmación real.
         async save(opciones) {
+          if (window.__construfactu_purge_in_progress) return false;
           opciones = opciones === true ? { skipCloudSync: true } : (opciones || {});
           ConstruFactu.Licensing.validarIntegridad();
           this.state._meta = { schemaVersion: this.SCHEMA_VERSION, savedAt: new Date().toISOString() };

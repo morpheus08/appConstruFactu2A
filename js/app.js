@@ -903,12 +903,18 @@
         return;
       }
 
+      window.__construfactu_local_write_pending = true;
+      window.__construfactu_purge_in_progress = true;
       const store = window.ConstruFactu.Store;
       const estadoAnterior = store.state;
-      store.state = store.clonarDefecto();
 
       try {
+        store.state = store.clonarDefecto();
         await store._queue;
+        while (store._writesPending > 0) {
+          await new Promise(resolve => setTimeout(resolve, 0));
+        }
+        window.__construfactu_local_write_pending = true;
         if (store._db) {
           store._db.close();
           store._db = null;
@@ -931,6 +937,8 @@
         window.location.reload();
       } catch (error) {
         store.state = estadoAnterior;
+        window.__construfactu_purge_in_progress = false;
+        window.__construfactu_local_write_pending = store._writesPending > 0;
         console.error('[cierre empresa] No se pudo completar la purga local:', error);
         await avisar('No se pudo completar el cierre de la empresa. ' + error.message, { tipo: 'error' });
       }
