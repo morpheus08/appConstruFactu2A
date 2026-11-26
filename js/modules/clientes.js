@@ -281,20 +281,24 @@ function getCliente(id) {
     }
     function cerrarModalNuevoCliente() { document.getElementById('modal-nuevo-cliente').classList.add('hidden'); }
     async function guardarClienteDesdeModal() {
-      const nombre = document.getElementById('mcli-nombre').value.trim();
-      const nif = document.getElementById('mcli-nif').value.trim().toUpperCase();
-      const cp = document.getElementById('mcli-cp').value.trim();
+      const leerCampo = id => {
+        const el = document.getElementById(id);
+        return el ? el.value.trim() : '';
+      };
+      const nombre = leerCampo('mcli-nombre');
+      const nif = leerCampo('mcli-nif').toUpperCase();
+      const cp = leerCampo('mcli-cp');
       if (!nombre || !nif) { avisar('Nombre y NIF obligatorios.'); return; }
       const nuevoId = 'c' + Date.now();
       const nuevoCli = {
         id: nuevoId, nombre, nif,
-        direccion: document.getElementById('mcli-direccion').value.trim(),
+        direccion: leerCampo('mcli-direccion'),
         cp,
-        poblacion: document.getElementById('mcli-poblacion').value.trim(),
-        telefono: document.getElementById('mcli-telefono').value.trim(),
-        movil: document.getElementById('mcli-movil').value.trim(),
-        email: document.getElementById('mcli-email').value.trim(),
-        observaciones: document.getElementById('mcli-observaciones').value.trim()
+        poblacion: leerCampo('mcli-poblacion'),
+        telefono: leerCampo('mcli-telefono'),
+        movil: leerCampo('mcli-movil'),
+        email: leerCampo('mcli-email'),
+        observaciones: leerCampo('mcli-observaciones')
       };
       await ConstruFactu.Clientes.guardar(nuevoCli);
       poblarSelectClientes(nuevoId);

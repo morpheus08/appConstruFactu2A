@@ -1,4 +1,6 @@
 (function(CF) {
+  let lineasEditorTemp = [];
+
   CF.Documentos = {
         obtenerTodos() {
           return (ConstruFactu.Store.state.documentos || []).filter(d => !d.deletedAt);
@@ -42,7 +44,7 @@
           } else {
             docs.unshift(docObj);
           }
-          return await ConstruFactu.Store.save();
+          return await window.ConstruFactu.Store.save();
         },
         async eliminar(id) {
           const docs = ConstruFactu.Store.state.documentos;

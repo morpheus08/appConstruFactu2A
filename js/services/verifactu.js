@@ -90,12 +90,16 @@
           }
         },
 
-        // formato 1 = legacy (sin FechaHoraRegistro) · formato 2 = actual (el sello temporal entra en el hash)
         cadena(r) {
-          const base = `IDEmisor=${r.idEmisor}&NumSerie=${r.numero}&Fecha=${r.fecha}&Cuota=${Number(r.cuota).toFixed(2)}&Total=${Number(r.total).toFixed(2)}`;
-          return r.formato === 1
-            ? `${base}&HuellaAnterior=${r.huellaAnterior}`
-            : `${base}&FechaHoraRegistro=${r.fechaHoraRegistro}&HuellaAnterior=${r.huellaAnterior}`;
+          const [year, month, day] = r.fecha.split('-');
+          const fechaFormateada = `${day}-${month}-${year}`;
+          const tipo = r.tipo === 'rectificativa' ? 'R1' : 'F1';
+          const cuotaStr = Number(r.cuota).toFixed(2);
+          const totalStr = Number(r.total).toFixed(2);
+          const huellaAnterior = r.huellaAnterior === this.ZERO ? 'PrimerRegistro' : r.huellaAnterior;
+
+          // Formato exacto AEAT v0.1.2
+          return `IDEmisor=${r.idEmisor}&NumSerie=${r.numero}&Fecha=${fechaFormateada}&Tipo=${tipo}&Cuota=${cuotaStr}&Total=${totalStr}&HuellaAnterior=${huellaAnterior}`;
         },
 
         async emitirOficial(docId) {
@@ -151,6 +155,10 @@
               huellaAnterior: st.ultimoHashVerifactu || this.ZERO, formato: 2
             };
             registro.huella = await this.sha256(this.cadena(registro));
+
+            // Generar el XML oficial de la AEAT
+            const clienteObj = st.clientes.find(c => c.id === doc.clienteId);
+            registro.xml = CF.VerifactuXML.generarRegistroAlta({ ...doc, numero: registro.numero }, st.empresa, clienteObj, registro);
 
             // Estado previo para rollback si el guardado falla
             const antes = {

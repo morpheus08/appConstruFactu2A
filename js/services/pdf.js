@@ -134,7 +134,7 @@ function verPDFDocumento(id) {
             <div class="space-y-1">
               <div class="text-[10px] font-extrabold text-slate-800 uppercase">${modoVerifactuActivo ? 'MODO CONFIGURADO: VERI*FACTU' : 'SISTEMA INFORMÁTICO DE FACTURACIÓN (MODO TRANSICIÓN)'}</div>
               ${modoVerifactuActivo ? `<div class="text-[9px] text-slate-600">Huella SHA-256: <span class="font-mono text-[8px]">${doc.hashVerifactu || ''}</span></div>` : ''}
-              <div class="text-[9px] text-slate-500">${modoVerifactuActivo ? 'La transmisión y verificación ante AEAT no están acreditadas por esta aplicación.' : 'El QR y la huella no acreditan por sí solos el cumplimiento normativo.'}</div>
+              <div class="text-[9px] text-slate-500">${modoVerifactuActivo ? 'Factura verificable en la sede electrónica de la AEAT o a través del código QR' : 'El QR y la huella no acreditan por sí solos el cumplimiento normativo.'}</div>
             </div>
             ${modoVerifactuActivo ? `<div id="qrcode-${doc.id}" class="p-1 bg-white border rounded shadow-sm flex items-center justify-center w-20 h-20"></div>` : ''}
           </div>
@@ -164,7 +164,10 @@ function verPDFDocumento(id) {
        Texto real y seleccionable (~30 KB), cabecera de tabla repetida en cada página, filas que no se parten.
        Independiente de la pantalla: siempre A4. La fuente estándar (Helvetica) admite Windows-1252. */
     function urlQrVerifactu(doc, empresa, tot) {
-      return "https://www.agenciatributaria.gob.es/verifactu?nif=" + encodeURIComponent(empresa.nif || '') + "&num=" + encodeURIComponent(doc.numero) + "&fecha=" + encodeURIComponent(doc.fecha) + "&total=" + tot.total.toFixed(2) + "&huella=" + encodeURIComponent(doc.hashVerifactu || '');
+      const [year, month, day] = doc.fecha.split('-');
+      const fecha = `${day}-${month}-${year}`;
+      const importe = Number(tot.total).toFixed(2);
+      return `https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR?nif=${encodeURIComponent(empresa.nif || '')}&numserie=${encodeURIComponent(doc.numero)}&fecha=${encodeURIComponent(fecha)}&importe=${importe}`;
     }
     function pdfTxt(v) {
       return String(v == null ? '' : v).replace(/\r\n?/g, '\n').replace(/\t/g, ' ').replace(/[^\n\x20-\x7E\xA0-\xFF€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ]/g, '?');
@@ -278,7 +281,7 @@ function verPDFDocumento(id) {
         asegurar(32); yy += 2;
         pdf.setDrawColor(...C.claro); pdf.setLineWidth(0.4); pdf.setLineDashPattern([1.6, 1.6], 0); pdf.line(L, yy, R, yy); pdf.setLineDashPattern([], 0);
         fuente('bold', 7.5); txt(C.ink); pdf.text(modoVerifactuActivo ? 'MODO CONFIGURADO: VERI*FACTU' : 'SISTEMA INFORMÁTICO DE FACTURACIÓN (MODO TRANSICIÓN)', L, yy + 6);
-        fuente('normal', 7); txt(C.suave); pdf.text(modoVerifactuActivo ? 'La transmisión y verificación ante AEAT no están acreditadas por esta aplicación.' : 'El QR y la huella no acreditan por sí solos el cumplimiento normativo.', L, yy + 15.5);
+        fuente('normal', 7); txt(C.suave); pdf.text(modoVerifactuActivo ? 'Factura verificable en la sede electrónica de la AEAT o a través del código QR' : 'El QR y la huella no acreditan por sí solos el cumplimiento normativo.', L, yy + 15.5);
         if (modoVerifactuActivo) {
           fuente('normal', 7); txt(C.gris); pdf.text('Huella SHA-256:', L, yy + 11);
           pdf.setFont('courier', 'normal'); pdf.setFontSize(6); pdf.text(pdfTxt(d.hashVerifactu || ''), L + 20, yy + 11);

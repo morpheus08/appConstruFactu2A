@@ -1,6 +1,6 @@
 const DEV_MODE = false; // <-- INTERRUPTOR GLOBAL (Cambiar a false para producción)
 const estadoInicialPorDefecto = {
-  VERIFACTU_ENABLED: true, // <-- Interruptor Verifactu (desactivado por defecto)
+  VERIFACTU_ENABLED: false, // <-- Interruptor Verifactu (desactivado por defecto)
   auth: { email: '', intentos: 0, bloqueadoHasta: 0 },
   empresa: { nombre: '', nif: '', direccion: '', iban: '', serie: 'F2026', serieRectificativa: 'R2026', logo: '', frecuenciaRecordatorio: '7', fechaCreacionSistema: new Date().toISOString(), licenciaTipo: 'prueba', licenciaExpiracion: '', modoVerifactu: 'no_verifactu', updatedAt: Date.now() },
   unidades: ['ud', 'm²', 'ml', 'm³', 'h', 'pa', 'kg', 'día'],
