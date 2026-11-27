@@ -531,6 +531,11 @@
         </div>
         <div><label class="block text-xs font-bold uppercase text-slate-500 mb-1">Concepto</label><input id="gas-concepto" type="text" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"></div>
         <div><label class="block text-xs font-bold uppercase text-slate-500 mb-1">Observaciones</label><textarea id="gas-observaciones" rows="3" placeholder="Ej: Placas para las obras de Juan y María" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"></textarea></div>
+        <div>
+          <label for="gasto-imagen-input" class="block text-xs font-bold uppercase text-slate-500 mb-1">Foto de factura o ticket</label>
+          <input id="gasto-imagen-input" type="file" accept="image/*" capture="environment" data-change="seleccionarImagenGasto" data-change-args='["$this"]' class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs">
+          <div id="gasto-imagen-preview" class="mt-2"></div>
+        </div>
         <div class="grid grid-cols-2 gap-2">
           <div><label class="block text-xs font-bold uppercase text-slate-500 mb-1">Base (€) *</label><input id="gas-base" type="number" step="0.01" data-input="recalcularGasto" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-bold"></div>
           <div>
@@ -805,6 +810,48 @@
       </div>
     </section>
 
+    <!-- MODAL CERRAR EMPRESA -->
+    <div id="modal-cierre-empresa" class="hidden fixed inset-0 bg-slate-950/80 z-50 flex items-center justify-center p-4 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="cierre-empresa-titulo">
+      <div class="bg-white rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl my-6">
+        <div class="flex items-center justify-between border-b border-rose-100 pb-2">
+          <h3 id="cierre-empresa-titulo" class="text-base font-extrabold text-rose-800">Cerrar empresa y empezar de cero</h3>
+          <button data-click="cerrarModalCierreEmpresa" aria-label="Cancelar cierre" class="text-slate-400 font-bold text-lg px-2">✕</button>
+        </div>
+        <p class="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs leading-relaxed text-rose-900">
+          Vas a borrar todos los datos de la empresa. Por ley, debes conservar las facturas emitidas durante 4 años. Si no has descargado tu copia de seguridad, no podrás recuperar los datos.
+        </p>
+        <p class="text-xs text-slate-600">Elige una carpeta donde guardar los tres archivos de seguridad. Se creará dentro una carpeta nueva con fecha y hora; el borrado no estará disponible si la copia no se completa.</p>
+        <div class="space-y-2 rounded-xl border border-slate-200 p-3">
+          <button id="btn-descargar-copia-cierre" data-click="descargarCopiaSeguridadCierreEmpresa" class="w-full rounded-xl bg-indigo-700 py-3 text-xs font-extrabold text-white">1. Descargar Copia de Seguridad</button>
+          <p id="cierre-copia-status" aria-live="polite" class="text-[11px] text-slate-500">Aún no se ha guardado la copia completa.</p>
+        </div>
+        <div class="space-y-3">
+          <div>
+            <label for="cierre-empresa-pin" class="mb-1 block text-xs font-bold uppercase text-slate-500">2. PIN de administrador</label>
+            <input id="cierre-empresa-pin" type="password" autocomplete="current-password" disabled data-input="validarPinCierreEmpresa" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm disabled:bg-slate-100">
+            <p id="cierre-pin-feedback" aria-live="polite" class="mt-1 text-[11px] text-slate-500">Disponible después de guardar la copia.</p>
+          </div>
+          <div>
+            <label for="cierre-empresa-confirmacion" class="mb-1 block text-xs font-bold uppercase text-slate-500">3. Escribe CERRAR en mayúsculas</label>
+            <input id="cierre-empresa-confirmacion" type="text" autocomplete="off" disabled data-input="actualizarEstadoCierreEmpresa" placeholder="CERRAR" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm uppercase disabled:bg-slate-100">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button data-click="cerrarModalCierreEmpresa" class="rounded-xl border border-slate-300 py-3 text-xs font-bold text-slate-700">Cancelar</button>
+          <button id="btn-confirmar-cierre-empresa" data-click="confirmarCierreEmpresa" disabled class="rounded-xl bg-red-700 py-3 text-xs font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-40">Borrar empresa definitivamente</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROGRESO DE COPIA DE SEGURIDAD -->
+    <div id="modal-generando-seguridad" class="hidden fixed inset-0 bg-slate-950/80 z-[60] flex items-center justify-center p-4" role="status" aria-live="polite">
+      <div class="w-full max-w-sm space-y-3 rounded-2xl bg-white p-6 text-center shadow-2xl">
+        <div class="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-indigo-100 border-t-indigo-700"></div>
+        <h3 class="font-extrabold text-slate-900">Generando archivos de seguridad...</h3>
+        <p id="cierre-progreso-texto" class="text-xs text-slate-600">Preparando los datos de la empresa.</p>
+      </div>
+    </div>
+
     <!-- MODAL IMPORTAR CLIENTES -->
     <div id="modal-importar-clientes" class="hidden fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 overflow-y-auto">
       <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl my-6 max-h-[90vh] overflow-y-auto">
@@ -932,6 +979,16 @@
           <button data-click="cerrarModalNuevoProveedorGasto" class="py-3 rounded-xl border font-bold text-xs">CANCELAR</button>
           <button data-click="guardarProveedorGastoDesdeModal" class="py-3 rounded-xl bg-slate-900 text-white font-bold text-xs">GUARDAR</button>
         </div>
+      </div>
+    </div>
+
+    <!-- MODAL IMAGEN DEL GASTO -->
+    <div id="modal-imagen-gasto" class="hidden fixed inset-0 bg-slate-900/90 z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl max-w-4xl w-full p-3 shadow-2xl">
+        <div class="flex justify-end pb-2">
+          <button data-click="cerrarModalImagenGasto" aria-label="Cerrar imagen" class="px-3 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold">✕</button>
+        </div>
+        <img id="gasto-imagen-modal-img" alt="Imagen adjunta al gasto" class="mx-auto max-h-[85vh] max-w-full object-contain">
       </div>
     </div>
 

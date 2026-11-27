@@ -64,8 +64,8 @@ function validarYBuscarCP(val) {
     function soloNumeros(input) {
       input.value = input.value.replace(/\D/g, '');
     }
-function getCliente(id) {
-      return ConstruFactu.Store.state.clientes.find(c => c.id === id) || { nombre: 'Cliente', nif: '-', direccion: '', cp: '', poblacion: '', telefono: '', movil: '', email: '', observaciones: '' };
+function getCliente(id, estado = ConstruFactu.Store.state) {
+      return (estado.clientes || []).find(c => c.id === id) || { nombre: 'Cliente', nif: '-', direccion: '', cp: '', poblacion: '', telefono: '', movil: '', email: '', observaciones: '' };
     }
 // CLIENTES
 

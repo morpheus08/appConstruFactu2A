@@ -193,12 +193,14 @@ function verPDFDocumento(id) {
       for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (o.isDark(r, c)) pdf.rect(x + c * m, y + r * m, m + 0.02, m + 0.02, 'F');
     }
 
-    async function generarPDFVectorial(docId) {
-      const S = ConstruFactu.Store.state;
-      const d = S.documentos.find(x => x.id === docId);
+    async function generarPDFVectorial(docId, estadoDocumento = null) {
+      const S = estadoDocumento || ConstruFactu.Store.state;
+      const d = (S.documentos || []).find(x => x.id === docId);
       if (!d) throw new Error('Documento no encontrado');
       if (!(window.jspdf && window.jspdf.jsPDF)) throw new Error('No se pudo cargar la librería de PDF.');
-      const cli = getCliente(d.clienteId) || {}, tot = calcTotalesDoc(d), emp = S.empresa || {};
+      const cli = getCliente(d.clienteId, S) || {};
+      const tot = ConstruFactu.Documentos.calcularTotales(d, S.verifactuLog);
+      const emp = S.empresa || {};
       const esRect = d.tipo === 'rectificativa', esOficial = (d.tipo === 'factura' || esRect) && d.estado === 'Oficial';
       const pdf = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
       const L = 16, R = 194, W = R - L, TOP = 14, BOT = 18, PH = 297;

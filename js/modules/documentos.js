@@ -11,9 +11,10 @@
           if (tipo === 'albaran' || tipo === 'albaranes') return docs.filter(d => d.tipo === 'albaran');
           return docs.filter(d => d.tipo === 'factura' || d.tipo === 'rectificativa');
         },
-        calcularTotales(doc) {
+        calcularTotales(doc, registrosVerifactu) {
           if (doc.estado === 'Oficial') {
-            const r = (ConstruFactu.Store.state.verifactuLog || []).find(x => x.docId === doc.id);
+            const log = registrosVerifactu || ConstruFactu.Store.state.verifactuLog || [];
+            const r = log.find(x => x.docId === doc.id);
             if (r && r.formato === 1) {                       // emitida con la fórmula antigua: importes congelados
               const cuotaC = ConstruFactu.Money.aCent(r.cuota), totalC = ConstruFactu.Money.aCent(r.total);
               return { baseC: totalC - cuotaC, cuotaC, totalC, lineasC: ConstruFactu.Money.totales(doc).lineasC,

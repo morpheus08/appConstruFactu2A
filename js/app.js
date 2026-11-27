@@ -3,6 +3,10 @@
     // CONSTRUFACTU v0.9.45 - MÓDULO ESTABLE UNIFICADO
     // ==========================================
     const ConstruFactu = window.ConstruFactu;
+    let cierreCopiaDescargada = false;
+    let cierrePinValido = false;
+    let cierreProcesando = false;
+    let cierrePinToken = 0;
     Object.assign(ConstruFactu, {
       DB_NAME: 'ConstruFactuDB_v0928',
       STORE_NAME: 'state_store',
@@ -872,75 +876,187 @@
       irA('menu');
     }
 
-    async function cerrarEmpresaYEmpezarDeCero() {
-      const descargar = await confirmar(
-        '⚠️ ATENCIÓN: Vas a cerrar la empresa actual.\n\nEs OBLIGATORIO que guardes una copia de seguridad. Hacienda te obliga a conservar tus facturas durante al menos 4 años.\n\n¿Quieres descargar tu copia de seguridad AHORA?',
-        { aceptar: 'Descargar copia', cancelar: 'Cancelar', peligro: true, titulo: 'Cierre de empresa' }
-      );
-      if (!descargar) return;
-      descargarBackupJSON();
+    function cerrarEmpresaYEmpezarDeCero() {
+      if (cierreProcesando) return;
+      cierreCopiaDescargada = false;
+      cierrePinValido = false;
+      cierrePinToken += 1;
+      document.getElementById('btn-descargar-copia-cierre').disabled = false;
+      document.getElementById('btn-descargar-copia-cierre').textContent = '1. Descargar Copia de Seguridad';
+      document.getElementById('cierre-copia-status').textContent = 'Aún no se ha guardado la copia completa.';
+      document.getElementById('cierre-copia-status').className = 'text-[11px] text-slate-500';
+      document.getElementById('cierre-empresa-pin').value = '';
+      document.getElementById('cierre-empresa-pin').disabled = true;
+      document.getElementById('cierre-pin-feedback').textContent = 'Disponible después de guardar la copia.';
+      document.getElementById('cierre-pin-feedback').className = 'mt-1 text-[11px] text-slate-500';
+      document.getElementById('cierre-empresa-confirmacion').value = '';
+      document.getElementById('cierre-empresa-confirmacion').disabled = true;
+      document.getElementById('btn-confirmar-cierre-empresa').disabled = true;
+      document.getElementById('modal-cierre-empresa').classList.remove('hidden');
+    }
 
-      const pin = await pedirTexto('Introduce tu PIN de administrador para autorizar el cierre de empresa', {
-        titulo: 'Seguridad',
-        tipo: 'password',
-        aceptar: 'Continuar',
-        peligro: true,
-        placeholder: 'Tu PIN'
-      });
-      if (!pin || !(await ConstruFactu.Auth.verificarPin(pin))) {
-        avisar('PIN incorrecto. No se ha cerrado la empresa.');
-        return;
-      }
+    function cerrarModalCierreEmpresa() {
+      if (cierreProcesando) return;
+      cierrePinToken += 1;
+      cierreCopiaDescargada = false;
+      cierrePinValido = false;
+      document.getElementById('modal-cierre-empresa').classList.add('hidden');
+    }
 
-      const confirmacion = await pedirTexto('Escribe la palabra CERRAR para borrar todo y empezar de cero', {
-        titulo: 'Confirmación Final',
-        aceptar: 'Cerrar empresa',
-        peligro: true,
-        placeholder: 'CERRAR'
-      });
-      if (confirmacion !== 'CERRAR') {
-        avisar('La confirmación no coincide. No se ha cerrado la empresa.');
-        return;
-      }
+    function actualizarEstadoCierreEmpresa() {
+      const puedeEditar = cierreCopiaDescargada && !cierreProcesando;
+      document.getElementById('cierre-empresa-pin').disabled = !puedeEditar;
+      document.getElementById('cierre-empresa-confirmacion').disabled = !puedeEditar;
+      const puedeConfirmar = cierreCopiaDescargada &&
+        cierrePinValido &&
+        document.getElementById('cierre-empresa-confirmacion').value === 'CERRAR' &&
+        !cierreProcesando;
+      document.getElementById('btn-confirmar-cierre-empresa').disabled = !puedeConfirmar;
+    }
 
-      window.__construfactu_local_write_pending = true;
-      window.__construfactu_purge_in_progress = true;
-      const store = window.ConstruFactu.Store;
-      const estadoAnterior = store.state;
+    async function validarPinCierreEmpresa() {
+      const pin = document.getElementById('cierre-empresa-pin').value;
+      const token = ++cierrePinToken;
+      cierrePinValido = false;
+      const feedback = document.getElementById('cierre-pin-feedback');
+      feedback.textContent = pin ? 'Verificando PIN...' : 'Introduce tu PIN de administrador.';
+      feedback.className = 'mt-1 text-[11px] text-slate-500';
+      actualizarEstadoCierreEmpresa();
+      if (!pin || !cierreCopiaDescargada) return;
 
       try {
-        store.state = store.clonarDefecto();
-        await store._queue;
-        while (store._writesPending > 0) {
-          await new Promise(resolve => setTimeout(resolve, 0));
-        }
-        window.__construfactu_local_write_pending = true;
-        if (store._db) {
-          store._db.close();
-          store._db = null;
-        }
-
-        await new Promise((resolve, reject) => {
-          const req = indexedDB.deleteDatabase('ConstruFactuDB_v0928');
-          req.onsuccess = () => resolve();
-          req.onerror = () => reject(req.error || new Error('No se pudo borrar la base de datos.'));
-          req.onblocked = () => {
-            avisar('Cierra las otras pestañas de ConstruFactu para poder borrar la base de datos.', {
-              tipo: 'aviso',
-              titulo: 'Base de datos en uso'
-            });
-          };
-        });
-
-        localStorage.clear();
-        sessionStorage.clear();
-        window.location.reload();
+        const valido = await ConstruFactu.Auth.verificarPin(pin);
+        if (token !== cierrePinToken) return;
+        cierrePinValido = valido;
+        feedback.textContent = valido ? 'PIN correcto.' : 'PIN incorrecto.';
+        feedback.className = valido
+          ? 'mt-1 text-[11px] font-bold text-emerald-700'
+          : 'mt-1 text-[11px] font-bold text-rose-700';
       } catch (error) {
-        store.state = estadoAnterior;
-        window.__construfactu_purge_in_progress = false;
-        window.__construfactu_local_write_pending = store._writesPending > 0;
-        console.error('[cierre empresa] No se pudo completar la purga local:', error);
-        await avisar('No se pudo completar el cierre de la empresa. ' + error.message, { tipo: 'error' });
+        if (token !== cierrePinToken) return;
+        console.error('[cierre empresa] No se pudo validar el PIN:', error);
+        feedback.textContent = 'No se pudo validar el PIN. Inténtalo de nuevo.';
+        feedback.className = 'mt-1 text-[11px] font-bold text-rose-700';
+      }
+      actualizarEstadoCierreEmpresa();
+    }
+
+    async function descargarCopiaSeguridadCierreEmpresa() {
+      if (cierreProcesando || cierreCopiaDescargada) return;
+      cierreProcesando = true;
+      actualizarEstadoCierreEmpresa();
+      const boton = document.getElementById('btn-descargar-copia-cierre');
+      const progreso = document.getElementById('modal-generando-seguridad');
+      boton.disabled = true;
+      document.getElementById('cierre-copia-status').textContent = 'Generando y guardando los tres archivos...';
+      document.getElementById('cierre-copia-status').className = 'text-[11px] text-slate-500';
+      progreso.classList.remove('hidden');
+      let mensajeError = '';
+
+      try {
+        const carpeta = await ConstruFactu.VerifactuBackup.exportarCierreEmpresa(mensaje => {
+          document.getElementById('cierre-progreso-texto').textContent = mensaje;
+        });
+        cierreCopiaDescargada = true;
+        boton.textContent = '✅ Copia descargada';
+        document.getElementById('cierre-copia-status').textContent =
+          `Los tres archivos se guardaron correctamente en ${carpeta}.`;
+        document.getElementById('cierre-copia-status').className = 'text-[11px] font-bold text-emerald-700';
+        document.getElementById('cierre-empresa-pin').disabled = false;
+        document.getElementById('cierre-empresa-confirmacion').disabled = false;
+        document.getElementById('cierre-pin-feedback').textContent = 'Introduce tu PIN de administrador.';
+      } catch (error) {
+        const cancelado = error && error.name === 'AbortError';
+        const mensaje = cancelado
+          ? 'Operación cancelada o interrumpida. La copia no se ha completado.'
+          : `No se completó la copia de seguridad: ${error.message || error}`;
+        document.getElementById('cierre-copia-status').textContent = mensaje;
+        document.getElementById('cierre-copia-status').className = 'text-[11px] font-bold text-rose-700';
+        if (!cancelado) {
+          console.error('[cierre empresa] Falló la copia de seguridad:', error);
+          mensajeError = mensaje;
+        }
+      } finally {
+        progreso.classList.add('hidden');
+        cierreProcesando = false;
+        boton.disabled = cierreCopiaDescargada;
+        actualizarEstadoCierreEmpresa();
+      }
+
+      if (mensajeError) await avisar(mensajeError, { tipo: 'error', titulo: 'Copia de seguridad incompleta' });
+    }
+
+    async function confirmarCierreEmpresa() {
+      const pin = document.getElementById('cierre-empresa-pin').value;
+      const confirmacion = document.getElementById('cierre-empresa-confirmacion').value;
+      if (!cierreCopiaDescargada) {
+        await avisar('Debes guardar los tres archivos de seguridad antes de borrar la empresa.', { tipo: 'error' });
+        return;
+      }
+      if (confirmacion !== 'CERRAR') {
+        await avisar('Debes escribir CERRAR exactamente en mayúsculas.', { tipo: 'error' });
+        return;
+      }
+      if (!pin || cierreProcesando) return;
+
+      cierreProcesando = true;
+      actualizarEstadoCierreEmpresa();
+      try {
+        if (!(await ConstruFactu.Auth.verificarPin(pin))) {
+          cierrePinValido = false;
+          document.getElementById('cierre-pin-feedback').textContent = 'PIN incorrecto.';
+          document.getElementById('cierre-pin-feedback').className = 'mt-1 text-[11px] font-bold text-rose-700';
+          await avisar('PIN incorrecto. No se ha cerrado la empresa.', { tipo: 'error' });
+          return;
+        }
+        if (!cierreCopiaDescargada || document.getElementById('cierre-empresa-confirmacion').value !== 'CERRAR') return;
+
+        window.__construfactu_local_write_pending = true;
+        window.__construfactu_purge_in_progress = true;
+        const store = window.ConstruFactu.Store;
+        const estadoAnterior = store.state;
+
+        try {
+          store.state = store.clonarDefecto();
+          await store._queue;
+          while (store._writesPending > 0) {
+            await new Promise(resolve => setTimeout(resolve, 0));
+          }
+          window.__construfactu_local_write_pending = true;
+          if (store._db) {
+            store._db.close();
+            store._db = null;
+          }
+
+          await new Promise((resolve, reject) => {
+            const req = indexedDB.deleteDatabase('ConstruFactuDB_v0928');
+            req.onsuccess = () => resolve();
+            req.onerror = () => reject(req.error || new Error('No se pudo borrar la base de datos.'));
+            req.onblocked = () => {
+              avisar('Cierra las otras pestañas de ConstruFactu para poder borrar la base de datos.', {
+                tipo: 'aviso',
+                titulo: 'Base de datos en uso'
+              });
+            };
+          });
+
+          localStorage.clear();
+          sessionStorage.clear();
+          window.location.reload();
+        } catch (error) {
+          store.state = estadoAnterior;
+          window.__construfactu_purge_in_progress = false;
+          window.__construfactu_local_write_pending = store._writesPending > 0;
+          console.error('[cierre empresa] No se pudo completar la purga local:', error);
+          await avisar('No se pudo completar el cierre de la empresa. ' + error.message, { tipo: 'error' });
+        }
+      } catch (error) {
+        cierrePinValido = false;
+        console.error('[cierre empresa] No se pudo validar el PIN antes de borrar:', error);
+        await avisar('No se pudo validar el PIN. No se ha borrado ningún dato.', { tipo: 'error' });
+      } finally {
+        cierreProcesando = false;
+        actualizarEstadoCierreEmpresa();
       }
     }
 

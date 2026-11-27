@@ -1,4 +1,8 @@
 (function(CF) {
+    let imagenAdjuntaTemporal = null;
+    let solicitudImagenGasto = 0;
+    let imagenGastoProcesando = false;
+
 function renderGastos() {
       const q = (document.getElementById('buscar-gasto').value || '').toLowerCase();
       const cont = document.getElementById('lista-gastos');
@@ -18,6 +22,7 @@ function renderGastos() {
            <div class="text-right">
               <div class="font-extrabold text-rose-700 text-sm">${fmtEuro(tot)}</div>
               <div class="flex gap-2 justify-end mt-1">
+                ${g.imagenAdjunta ? `<button data-click="verImagenAdjuntaGasto" data-click-args='["${escapeHTML(g.id)}"]' aria-label="Ver foto adjunta" title="Ver foto adjunta" class="text-[10px] text-slate-500 font-bold">📎</button>` : ''}
                 <button data-click="abrirFormGasto" data-click-args='["${escapeHTML(g.id)}"]' class="text-[10px] text-blue-600 font-bold hover:underline">Editar</button>
                 <button data-click="eliminarGasto" data-click-args='["${escapeHTML(g.id)}"]' class="text-[10px] text-slate-400 hover:text-rose-600 font-bold hover:underline">Eliminar</button>
               </div>
@@ -31,6 +36,10 @@ function renderGastos() {
       ocultarTodasLasVistas();
       document.getElementById('view-gasto-form').classList.remove('hidden');
       poblarSelectProveedoresGasto();
+      solicitudImagenGasto += 1;
+      imagenGastoProcesando = false;
+      imagenAdjuntaTemporal = null;
+      document.getElementById('gasto-imagen-input').value = '';
       
       if (id) {
         const g = (ConstruFactu.Store.state.gastos || []).find(x => x.id === id);
@@ -47,6 +56,7 @@ function renderGastos() {
         document.getElementById('gas-observaciones').value = g.observaciones || '';
         document.getElementById('gas-base').value = g.base || '';
         document.getElementById('gas-iva').value = String(g.iva ?? 21);
+        imagenAdjuntaTemporal = g.imagenAdjunta || null;
         poblarSelectProveedoresGasto(g.proveedor);
       } else {
         ['gas-id', 'gas-nif', 'gas-num', 'gas-concepto', 'gas-observaciones', 'gas-base'].forEach(id => document.getElementById(id).value = '');
@@ -54,14 +64,147 @@ function renderGastos() {
         document.getElementById('gas-iva').value = '21';
         poblarSelectProveedoresGasto();
       }
+      mostrarPreviewImagenGasto(imagenAdjuntaTemporal);
       recalcularGasto();
     }
+
+    function esImagenBase64(valor) {
+      return typeof valor === 'string' && /^data:image\/[a-z0-9.+-]+;base64,/i.test(valor);
+    }
+
+    function mostrarPreviewImagenGasto(imagen) {
+      const preview = document.getElementById('gasto-imagen-preview');
+      preview.textContent = '';
+      if (!imagen) return;
+      if (!esImagenBase64(imagen)) {
+        console.warn('[Gastos] La imagen adjunta no tiene un formato Base64 válido.');
+        return;
+      }
+
+      const miniatura = document.createElement('img');
+      miniatura.src = imagen;
+      miniatura.alt = 'Vista previa de la factura o ticket';
+      miniatura.style.maxHeight = '100px';
+      miniatura.className = 'max-w-full rounded-lg border border-slate-200 object-contain';
+      preview.appendChild(miniatura);
+
+      const quitar = document.createElement('button');
+      quitar.type = 'button';
+      quitar.textContent = 'Quitar imagen';
+      quitar.setAttribute('data-click', 'quitarImagenGasto');
+      quitar.className = 'ml-2 text-xs font-bold text-rose-700 hover:underline';
+      preview.appendChild(quitar);
+    }
+
+    function comprimirImagen(file, maxWidth = 800, calidad = 0.6) {
+      return new Promise((resolve, reject) => {
+        if (!file) {
+          reject(new Error('No se seleccionó ningún archivo.'));
+          return;
+        }
+        if (file.type && !file.type.startsWith('image/')) {
+          reject(new Error('El archivo seleccionado no es una imagen.'));
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onerror = () => reject(reader.error || new Error('No se pudo leer la imagen.'));
+        reader.onload = () => {
+          if (typeof reader.result !== 'string') {
+            reject(new Error('No se pudo leer la imagen.'));
+            return;
+          }
+
+          const imagen = new Image();
+          imagen.onerror = () => reject(new Error('No se pudo decodificar la imagen.'));
+          imagen.onload = () => {
+            const anchoOriginal = imagen.naturalWidth;
+            const altoOriginal = imagen.naturalHeight;
+            if (!anchoOriginal || !altoOriginal) {
+              reject(new Error('La imagen no tiene dimensiones válidas.'));
+              return;
+            }
+
+            const anchoSolicitado = Number(maxWidth);
+            const anchoLimite = Number.isFinite(anchoSolicitado) && anchoSolicitado > 0 ? anchoSolicitado : 800;
+            const escala = Math.min(1, anchoLimite / anchoOriginal, 1200 / altoOriginal);
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.max(1, Math.round(anchoOriginal * escala));
+            canvas.height = Math.max(1, Math.round(altoOriginal * escala));
+            const contexto = canvas.getContext('2d');
+            if (!contexto) {
+              reject(new Error('El navegador no pudo preparar la imagen para comprimirla.'));
+              return;
+            }
+
+            try {
+              // Los navegadores actuales aplican la orientación EXIF al decodificar Image.
+              contexto.fillStyle = '#fff';
+              contexto.fillRect(0, 0, canvas.width, canvas.height);
+              contexto.drawImage(imagen, 0, 0, canvas.width, canvas.height);
+              const calidadSolicitada = Number(calidad);
+              const calidadJPEG = Number.isFinite(calidadSolicitada)
+                ? Math.max(0, Math.min(1, calidadSolicitada))
+                : 0.6;
+              const resultado = canvas.toDataURL('image/jpeg', calidadJPEG);
+              if (!resultado.startsWith('data:image/jpeg;base64,')) {
+                reject(new Error('No se pudo comprimir la imagen.'));
+                return;
+              }
+              resolve(resultado);
+            } catch (error) {
+              reject(error);
+            } finally {
+              canvas.width = 0;
+              canvas.height = 0;
+            }
+          };
+          imagen.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function seleccionarImagenGasto(input) {
+      const file = input && input.files && input.files[0];
+      if (!file) return;
+
+      const solicitud = ++solicitudImagenGasto;
+      imagenGastoProcesando = true;
+      try {
+        const imagen = await comprimirImagen(file);
+        if (solicitud !== solicitudImagenGasto) return;
+        imagenAdjuntaTemporal = imagen;
+        mostrarPreviewImagenGasto(imagenAdjuntaTemporal);
+      } catch (error) {
+        if (solicitud === solicitudImagenGasto) {
+          input.value = '';
+          console.error('[Gastos] No se pudo procesar la imagen adjunta:', error);
+          avisar('No se pudo procesar la imagen. Prueba con otro archivo.', { tipo: 'error' });
+        }
+      } finally {
+        if (solicitud === solicitudImagenGasto) imagenGastoProcesando = false;
+      }
+    }
+
+    function quitarImagenGasto() {
+      solicitudImagenGasto += 1;
+      imagenGastoProcesando = false;
+      imagenAdjuntaTemporal = null;
+      document.getElementById('gasto-imagen-input').value = '';
+      mostrarPreviewImagenGasto(null);
+    }
+
     function recalcularGasto() {
       const base = Number(document.getElementById('gas-base').value) || 0;
       const iva = Number(document.getElementById('gas-iva').value) || 0;
       document.getElementById('gas-total-preview').textContent = fmtEuro(ConstruFactu.Money.gasto({ base, iva }).totalC / 100);
     }
     async function guardarGasto() {
+      if (imagenGastoProcesando) {
+        avisar('Espera a que termine el procesamiento de la imagen antes de guardar.');
+        return;
+      }
       const id = document.getElementById('gas-id').value;
       const proveedor = document.getElementById('gas-proveedor').value.trim();
       const base = ConstruFactu.Money.aCent(document.getElementById('gas-base').value) / 100;
@@ -78,6 +221,7 @@ function renderGastos() {
         observaciones: document.getElementById('gas-observaciones').value.trim(),
         base,
         iva: Number(document.getElementById('gas-iva').value),
+        imagenAdjunta: imagenAdjuntaTemporal || null,
         updatedAt: Date.now(),
         deletedAt: null
       };
@@ -106,6 +250,25 @@ function renderGastos() {
       await ConstruFactu.Store.save();
       irA('gastos');
     }
+
+    function verImagenAdjuntaGasto(id) {
+      const gasto = (ConstruFactu.Store.state.gastos || []).find(item => item.id === id && !item.deletedAt);
+      if (!gasto || !gasto.imagenAdjunta) return;
+      if (!esImagenBase64(gasto.imagenAdjunta)) {
+        console.warn('[Gastos] No se puede mostrar una imagen adjunta con formato no válido:', id);
+        avisar('La imagen adjunta no tiene un formato válido.', { tipo: 'error' });
+        return;
+      }
+
+      document.getElementById('gasto-imagen-modal-img').src = gasto.imagenAdjunta;
+      document.getElementById('modal-imagen-gasto').classList.remove('hidden');
+    }
+
+    function cerrarModalImagenGasto() {
+      document.getElementById('gasto-imagen-modal-img').removeAttribute('src');
+      document.getElementById('modal-imagen-gasto').classList.add('hidden');
+    }
+
     async function eliminarGasto(id) {
       if ((await confirmar('¿Eliminar gasto?', { aceptar: 'Eliminar', peligro: true }))) {
         const gasto = (ConstruFactu.Store.state.gastos || []).find(g => g.id === id);
@@ -170,12 +333,20 @@ function poblarSelectProveedoresGasto(seleccionarNombre = '') {
   window.renderGastos = CF.renderGastos;
   CF.abrirFormGasto = function() { return abrirFormGasto.apply(this, arguments); };
   window.abrirFormGasto = CF.abrirFormGasto;
+  CF.seleccionarImagenGasto = function() { return seleccionarImagenGasto.apply(this, arguments); };
+  window.seleccionarImagenGasto = CF.seleccionarImagenGasto;
+  CF.quitarImagenGasto = function() { return quitarImagenGasto.apply(this, arguments); };
+  window.quitarImagenGasto = CF.quitarImagenGasto;
   CF.recalcularGasto = function() { return recalcularGasto.apply(this, arguments); };
   window.recalcularGasto = CF.recalcularGasto;
   CF.guardarGasto = function() { return guardarGasto.apply(this, arguments); };
   window.guardarGasto = CF.guardarGasto;
   CF.eliminarGasto = function() { return eliminarGasto.apply(this, arguments); };
   window.eliminarGasto = CF.eliminarGasto;
+  CF.verImagenAdjuntaGasto = function() { return verImagenAdjuntaGasto.apply(this, arguments); };
+  window.verImagenAdjuntaGasto = CF.verImagenAdjuntaGasto;
+  CF.cerrarModalImagenGasto = function() { return cerrarModalImagenGasto.apply(this, arguments); };
+  window.cerrarModalImagenGasto = CF.cerrarModalImagenGasto;
   CF.poblarSelectProveedoresGasto = function() { return poblarSelectProveedoresGasto.apply(this, arguments); };
   window.poblarSelectProveedoresGasto = CF.poblarSelectProveedoresGasto;
   CF.cambiarSelectorProveedorGasto = function() { return cambiarSelectorProveedorGasto.apply(this, arguments); };
