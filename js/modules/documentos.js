@@ -44,6 +44,34 @@
           } else {
             docs.unshift(docObj);
           }
+          const catalogoPrecios = ConstruFactu.Store.state.catalogoPrecios;
+          (docObj.lineas || []).forEach(linea => {
+            const concepto = String(linea.concepto || '').trim();
+            if (!concepto) return;
+
+            const conceptoNormalizado = concepto.toLowerCase();
+            const partida = catalogoPrecios.find(p =>
+              !p.deletedAt && String(p.concepto || '').trim().toLowerCase() === conceptoNormalizado
+            );
+            if (!partida) {
+              let id;
+              do {
+                id = 't' + Date.now() + Math.random().toString(36).substring(2, 8);
+              } while (catalogoPrecios.some(p => p.id === id));
+              catalogoPrecios.push({
+                id,
+                capitulo: 'General',
+                concepto,
+                precio: Number(linea.precio) || 0,
+                unidad: linea.unidad || 'ud',
+                updatedAt: Date.now(),
+                deletedAt: null
+              });
+            } else if (Number(partida.precio) !== Number(linea.precio)) {
+              partida.precio = Number(linea.precio) || 0;
+              partida.updatedAt = Date.now();
+            }
+          });
           return await window.ConstruFactu.Store.save();
         },
         async eliminar(id) {
