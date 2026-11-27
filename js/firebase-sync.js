@@ -661,6 +661,7 @@
     function montarUI() {
         // 1. LIMPIEZA: Borrar botones duplicados que hayan podido quedar en el menú principal
         document.querySelectorAll('#btn-sync-cloud').forEach(el => el.remove());
+        document.querySelectorAll('#cf-sync-card').forEach(el => el.remove());
         // Borrar también el modal viejo si existe para no duplicarlo
         const modalViejo = document.getElementById('modal-sync-cloud');
         if (modalViejo) modalViejo.remove();
@@ -670,31 +671,26 @@
 
         // 2. Creamos la tarjeta visual
         const htmlTarjeta = `
-            <div id="cf-sync-card" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm mt-4 mb-4">
-                <div class="flex items-center justify-between mb-2">
-                    <h3 class="font-extrabold text-sm text-slate-900">SINCRONIZACIÓN EN LA NUBE</h3>
-                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">Firebase</span>
+            <details id="cf-sync-card" class="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <summary class="flex cursor-pointer list-none select-none items-center justify-between gap-3 px-4 py-4 sm:px-5">
+                    <span class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-800"><span>☁️</span> Sincronización en la Nube</span>
+                    <span class="flex shrink-0 items-center gap-2">
+                        <span class="rounded bg-indigo-100 px-2 py-0.5 text-[10px] font-extrabold text-indigo-700">Firebase</span>
+                        <svg class="h-4 w-4 text-slate-500 transition-transform duration-200 group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 7.47a.75.75 0 0 1 1.06 0L10 11.19l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 8.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+                    </span>
+                </summary>
+                <div class="space-y-3 border-t border-slate-100 px-4 pb-5 pt-4 sm:px-5">
+                    <p class="text-xs text-slate-600">Comparte clientes y facturas entre tu móvil y tu ordenador de forma segura.</p>
+                    <p id="cf-sync-connection-state" class="mb-1 inline-flex rounded px-2 py-1 text-[10px] font-bold">Sin conexión</p>
+                    <button id="btn-sync-cloud" class="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3 font-extrabold text-white shadow-md transition hover:bg-indigo-700">
+                        ☁️ Abrir Sincronización
+                    </button>
                 </div>
-                <p class="text-xs text-slate-600 mb-4">Comparte clientes y facturas entre tu móvil y tu ordenador de forma segura.</p>
-                <p id="cf-sync-connection-state" class="inline-flex text-[10px] font-bold px-2 py-1 rounded mb-3">Sin conexión</p>
-                <button id="btn-sync-cloud" class="w-full py-3 bg-indigo-600 text-white rounded-xl font-extrabold shadow-md flex items-center justify-center gap-2 hover:bg-indigo-700 transition">
-                    ☁️ Abrir Sincronización
-                </button>
-            </div>
+            </details>
         `;
 
-        // 3. Buscamos el bloque de "Copia de Seguridad" para insertar justo encima
-        let targetNode = null;
-        const elementos = vistaConfig.querySelectorAll('div');
-        for (let el of elementos) {
-            // Buscamos el texto en minúsculas para evitar fallos de mayúsculas
-            if (el.textContent.toLowerCase().includes('copia de seguridad') && el.children.length > 0) {
-                targetNode = el;
-                break;
-            }
-        }
-
-        // 4. Inserción
+        // 3. Insertamos el acordeón de sincronización antes de las copias de seguridad
+        const targetNode = document.getElementById('cfg-backup-accordion');
         if (targetNode && targetNode.parentNode) {
             targetNode.insertAdjacentHTML('beforebegin', htmlTarjeta);
         } else {

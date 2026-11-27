@@ -35,6 +35,7 @@
   <style>
     * { -webkit-tap-highlight-color: transparent; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    details > summary::-webkit-details-marker { display: none; }
     .hoja-a4 {
       width: 210mm;
       min-height: 297mm;
@@ -388,7 +389,13 @@
               <label class="block text-xs font-bold uppercase text-slate-500">Cliente *</label>
               <button data-click="abrirModalNuevoCliente" class="text-[11px] font-extrabold text-blue-600 hover:underline">+ Nuevo Cliente</button>
             </div>
-            <select id="doc-cliente" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-sm font-semibold"></select>
+            <select id="doc-cliente" data-change="actualizarPresupuestosVinculables" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-sm font-semibold"></select>
+          </div>
+          <div id="wrapper-presupuesto-vinculado" class="hidden">
+            <label for="doc-presupuesto-vinculado" class="block text-xs font-bold uppercase text-slate-500 mb-1">Presupuesto vinculado (opcional)</label>
+            <select id="doc-presupuesto-vinculado" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-sm font-semibold">
+              <option value="">-- Sin presupuesto vinculado --</option>
+            </select>
           </div>
           <div><label class="block text-xs font-bold uppercase text-slate-500 mb-1">Obra / Referencia</label><input id="doc-obra" type="text" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-sm"></div>
           <div class="grid grid-cols-2 gap-2">
@@ -673,10 +680,12 @@
       </div>
 
       <!-- 1. DATOS DE LA EMPRESA -->
-      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-        <div class="text-xs font-extrabold uppercase tracking-wider text-slate-800 border-b pb-2 flex items-center gap-2">
-          <span>🏢</span> Datos Fiscales y Acceso
-        </div>
+      <details open class="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <summary class="flex cursor-pointer list-none select-none items-center justify-between gap-3 bg-white px-4 py-4 sm:px-5">
+          <span class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-800"><span>🏢</span> Datos Fiscales de la Empresa</span>
+          <svg class="h-4 w-4 shrink-0 text-slate-500 transition-transform duration-200 group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 7.47a.75.75 0 0 1 1.06 0L10 11.19l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 8.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+        </summary>
+        <div class="space-y-3 border-t border-slate-100 px-4 pb-5 pt-4 sm:px-5">
         <div>
           <label class="block text-xs font-bold text-slate-600 mb-1">Logotipo Empresa</label>
           <div class="flex items-center gap-3">
@@ -702,112 +711,129 @@
           <p class="text-xs text-slate-500 mt-1">Si tienes dudas, elige 'Facturación Segura'. Tus facturas cumplirán la ley sin necesidad de conectarte a Hacienda.</p>
         </div>
         <button data-click="guardarConfigEmpresa" class="w-full py-3.5 rounded-xl bg-slate-900 text-white font-bold text-sm shadow-md">GUARDAR DATOS DE EMPRESA</button>
-      </div>
+        </div>
+      </details>
 
       <!-- 2. CONFIGURACIÓN DE FACTURACIÓN -->
-      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-        <div class="text-xs font-extrabold uppercase tracking-wider text-slate-800 border-b pb-2 flex items-center gap-2">
-          <span>🧾</span> Configuración de Facturación
-        </div>
+      <details class="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <summary class="flex cursor-pointer list-none select-none items-center justify-between gap-3 bg-white px-4 py-4 sm:px-5">
+          <span class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-800"><span>🧾</span> Configuración de Facturación</span>
+          <svg class="h-4 w-4 shrink-0 text-slate-500 transition-transform duration-200 group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 7.47a.75.75 0 0 1 1.06 0L10 11.19l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 8.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+        </summary>
+        <div class="space-y-3 border-t border-slate-100 px-4 pb-5 pt-4 sm:px-5">
         <p role="alert" class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs font-semibold leading-relaxed text-amber-800">⚠️ ATENCIÓN: No modifiques estos valores si ya has emitido facturas. Cambiar la serie o el número puede causar problemas con Hacienda.</p>
         <div>
           <label for="cfg-serie" class="block text-xs font-bold text-slate-600 mb-1">Serie de Facturación</label>
           <input id="cfg-serie" type="text" autocomplete="off" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm uppercase font-semibold" placeholder="Ej. FAC-2026">
-        </div>
+          </div>
         <div>
           <label for="cfg-siguiente-numero" class="block text-xs font-bold text-slate-600 mb-1">Siguiente Número</label>
           <input id="cfg-siguiente-numero" type="number" min="1" step="1" inputmode="numeric" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold">
           <p class="text-xs text-slate-500 mt-1">Se asignará a la próxima factura oficial emitida.</p>
         </div>
         <button data-click="guardarConfiguracionFacturacion" class="w-full py-3.5 rounded-xl bg-indigo-600 text-white font-bold text-sm shadow-md">GUARDAR CONFIGURACIÓN DE FACTURACIÓN</button>
-      </div>
+        </div>
+      </details>
 
       <!-- 3. COPIA DE SEGURIDAD -->
-      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-        <div class="flex justify-between items-center border-b pb-2">
-          <div class="text-xs font-extrabold uppercase tracking-wider text-slate-800 flex items-center gap-2">
-            <span>☁️</span> Copia de Seguridad
+      <details id="cfg-backup-accordion" class="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <summary class="flex cursor-pointer list-none select-none items-center justify-between gap-3 bg-white px-4 py-4 sm:px-5">
+          <span class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-800"><span>☁️</span> Copias de Seguridad</span>
+          <svg class="h-4 w-4 shrink-0 text-slate-500 transition-transform duration-200 group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 7.47a.75.75 0 0 1 1.06 0L10 11.19l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 8.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+        </summary>
+        <div class="space-y-3 border-t border-slate-100 px-4 pb-5 pt-4 sm:px-5">
+          <div class="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <div class="flex items-center justify-between border-b pb-2">
+              <div class="text-xs font-extrabold uppercase tracking-wider text-slate-800">Copia local</div>
+              <span class="rounded border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-extrabold text-emerald-700">Seguro Local</span>
+            </div>
+            <p class="text-xs text-slate-500">Envía tu archivo de respaldo (.json) por correo a ti mismo o a tu gestoría, o descárgalo en el dispositivo.</p>
+            <button data-click="enviarCopiaSeguridadEmail" class="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-xs font-bold text-white shadow-sm">
+              📩 ENVIAR COPIA DE SEGURIDAD POR EMAIL
+            </button>
+            <button data-click="descargarBackupJSON" class="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white py-3 text-xs font-bold text-slate-800">
+              📥 DESCARGAR ARCHIVO (.JSON) EN DISPOSITIVO
+            </button>
+            <div>
+              <label class="mb-1 block text-xs font-bold uppercase text-slate-600">Frecuencia de Recordatorio</label>
+              <select id="cfg-frecuencia" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-xs font-bold">
+                <option value="7">Avisar cada 7 días</option>
+                <option value="15">Avisar cada 15 días</option>
+                <option value="30">Avisar cada 30 días</option>
+                <option value="0">Desactivado</option>
+              </select>
+            </div>
+            <div>
+              <label class="mb-1 block text-xs font-bold uppercase text-slate-600">Restaurar desde Archivo JSON</label>
+              <input type="file" id="cfg-file-restore" accept=".json,.txt,application/json,text/plain" data-change="restaurarDesdeArchivoJSON" data-change-args='["$this"]' class="w-full text-xs text-slate-500 file:mr-4 file:rounded-xl file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-slate-700">
+            </div>
           </div>
-          <span class="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Seguro Local</span>
+          <div class="space-y-3 rounded-xl border border-indigo-200 bg-indigo-50/40 p-4">
+            <div class="border-b pb-2 text-xs font-extrabold uppercase tracking-wider text-indigo-900">🛡️ Copia de Seguridad Fiscal (Verifactu)</div>
+            <p class="text-xs text-slate-600">Guarda o restaura los registros y documentos oficiales de Veri*factu.</p>
+            <button type="button" id="btn-exportar-backup" class="w-full rounded-xl bg-indigo-700 py-3 text-xs font-bold text-white shadow-sm">
+              📥 Descargar Copia de Seguridad
+            </button>
+            <button type="button" id="btn-importar-backup" class="w-full rounded-xl border border-indigo-300 bg-white py-3 text-xs font-bold text-indigo-900">
+              📤 Restaurar Copia
+            </button>
+            <input type="file" id="input-file-backup" class="hidden" accept=".cfvbackup">
+            <p class="text-xs text-slate-500">Última copia: <span id="ultimo-backup-fecha">Sin copias realizadas</span></p>
+          </div>
         </div>
-        <p class="text-xs text-slate-500">Envía tu archivo de respaldo (.json) por correo a ti mismo o a tu gestoría, o descárgalo en el dispositivo.</p>
-        <button data-click="enviarCopiaSeguridadEmail" class="w-full py-3 rounded-xl bg-blue-600 text-white font-bold text-xs shadow-sm flex items-center justify-center gap-2">
-          📩 ENVIAR COPIA DE SEGURIDAD POR EMAIL
-        </button>
-        <button data-click="descargarBackupJSON" class="w-full py-3 rounded-xl bg-white border border-slate-300 text-slate-800 font-bold text-xs flex items-center justify-center gap-2">
-          📥 DESCARGAR ARCHIVO (.JSON) EN DISPOSITIVO
-        </button>
-        <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">Frecuencia de Recordatorio</label>
-          <select id="cfg-frecuencia" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-slate-50 text-xs font-bold">
-            <option value="7">Avisar cada 7 días</option>
-            <option value="15">Avisar cada 15 días</option>
-            <option value="30">Avisar cada 30 días</option>
-            <option value="0">Desactivado</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">Restaurar desde Archivo JSON</label>
-          <input type="file" id="cfg-file-restore" accept=".json,.txt,application/json,text/plain" data-change="restaurarDesdeArchivoJSON" data-change-args='["$this"]' class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700">
-        </div>
-      </div>
-
-      <!-- Copia de seguridad fiscal Veri*factu -->
-      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-indigo-200 shadow-sm space-y-3">
-        <div class="text-xs font-extrabold uppercase tracking-wider text-indigo-900 border-b pb-2 flex items-center gap-2">
-          <span>🛡️</span> Copia de Seguridad Fiscal (Verifactu)
-        </div>
-        <p class="text-xs text-slate-600">Guarda o restaura los registros y documentos oficiales de Veri*factu.</p>
-        <button type="button" id="btn-exportar-backup" class="w-full py-3 rounded-xl bg-indigo-700 text-white font-bold text-xs shadow-sm">
-          📥 Descargar Copia de Seguridad
-        </button>
-        <button type="button" id="btn-importar-backup" class="w-full py-3 rounded-xl bg-white border border-indigo-300 text-indigo-900 font-bold text-xs">
-          📤 Restaurar Copia
-        </button>
-        <input type="file" id="input-file-backup" class="hidden" accept=".cfvbackup">
-        <p class="text-xs text-slate-500">Última copia: <span id="ultimo-backup-fecha">Sin copias realizadas</span></p>
-      </div>
+      </details>
 
       <!-- 3. SUSCRIPCIÓN Y LICENCIA -->
-      <div id="cfg-licencia-card" class="bg-amber-50/70 p-4 sm:p-5 rounded-2xl border-2 border-amber-300 shadow-sm space-y-3">
-        <div class="flex justify-between items-center">
-          <div class="text-xs font-extrabold uppercase tracking-wider text-amber-900 flex items-center gap-2">
-            <span>🔑</span> Suscripción y Licencia
+      <details id="cfg-licencia-card" class="group overflow-hidden rounded-2xl border-2 border-amber-300 bg-amber-50/70 shadow-sm">
+        <summary class="flex cursor-pointer list-none select-none items-center justify-between gap-3 px-4 py-4 sm:px-5">
+          <span class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-amber-900"><span>🔑</span> Suscripción y Licencia</span>
+          <span class="flex shrink-0 items-center gap-2">
+            <span id="cfg-badge-licencia" class="rounded bg-amber-200 px-2 py-0.5 text-[10px] font-extrabold text-amber-900 shadow-sm">PRUEBA 15 DÍAS</span>
+            <svg class="h-4 w-4 text-amber-800 transition-transform duration-200 group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 7.47a.75.75 0 0 1 1.06 0L10 11.19l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 8.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+          </span>
+        </summary>
+        <div class="space-y-3 border-t border-amber-200 px-4 pb-5 pt-4 sm:px-5">
+          <p id="cfg-desc-licencia" class="text-xs text-amber-800">Te quedan <strong>15 días</strong> de prueba gratuita. Introduce tu clave de suscripción PRO para activar.</p>
+          <div class="flex gap-2">
+            <input id="cfg-licencia-input" type="text" placeholder="CF-PRO-2026-XXXX" class="flex-1 rounded-xl border border-amber-300 bg-white px-3 py-2.5 text-xs font-bold uppercase">
+            <button data-click="activarLicencia" class="rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-extrabold text-amber-400 shadow-md">ACTIVAR</button>
           </div>
-          <span id="cfg-badge-licencia" class="text-[10px] font-extrabold bg-amber-200 text-amber-900 px-2 py-0.5 rounded shadow-sm">PRUEBA 15 DÍAS</span>
+          <button data-click="mostrarModalCompra" class="w-full rounded-xl bg-amber-500 px-4 py-2 font-bold text-white shadow hover:bg-amber-600">💳 Comprar Licencia PRO</button>
         </div>
-        <p id="cfg-desc-licencia" class="text-xs text-amber-800">Te quedan <strong>15 días</strong> de prueba gratuita. Introduce tu clave de suscripción PRO para activar.</p>
-        <div class="flex gap-2">
-          <input id="cfg-licencia-input" type="text" placeholder="CF-PRO-2026-XXXX" class="flex-1 px-3 py-2.5 rounded-xl border border-amber-300 bg-white text-xs font-bold uppercase">
-          <button data-click="activarLicencia" class="px-4 py-2.5 rounded-xl bg-slate-900 text-amber-400 font-extrabold text-xs shadow-md">ACTIVAR</button>
-        </div>
-        <button data-click="mostrarModalCompra" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl py-2 px-4 shadow">💳 Comprar Licencia PRO</button>
-      </div>
+      </details>
 
       <!-- 4. BORRAR DATOS (EN PRODUCCIÓN) Y CONTROL DE SESIÓN -->
-      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-        <div class="text-[11px] font-extrabold text-rose-700 uppercase">Zona de Producción / Borrado</div>
-        <p class="text-[11px] text-slate-500">Elimina los datos de demostración o vacía las tablas de trabajo introduciendo tu Palabra Maestra.</p>
-        <button data-click="verificarIntegridadVerifactu" class="w-full py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 font-extrabold text-xs">🔗 Verificar integridad Veri*factu</button>
-        <button data-click="limpiarDatosDemostraciónSeguro" class="w-full py-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 font-extrabold text-xs">🗑️ Borrar datos</button>
-        <button data-click="cerrarSesion" class="w-full py-2.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 font-extrabold text-xs">Cerrar Sesión</button>
-        <button data-click="cerrarEmpresaYEmpezarDeCero" class="w-full py-3 rounded-xl bg-red-700 text-white font-extrabold text-xs">🚪 Cerrar Empresa y empezar de cero</button>
-      </div>
+      <details class="group overflow-hidden rounded-2xl border border-rose-200 bg-white shadow-sm">
+        <summary class="flex cursor-pointer list-none select-none items-center justify-between gap-3 px-4 py-4 sm:px-5">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-rose-700">⚠️ Zona de Peligro / Borrado</span>
+          <svg class="h-4 w-4 shrink-0 text-rose-500 transition-transform duration-200 group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 7.47a.75.75 0 0 1 1.06 0L10 11.19l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 8.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+        </summary>
+        <div class="space-y-3 border-t border-rose-100 px-4 pb-5 pt-4 sm:px-5">
+          <p class="text-[11px] text-slate-500">Elimina los datos de demostración o vacía las tablas de trabajo introduciendo tu Palabra Maestra.</p>
+          <button data-click="verificarIntegridadVerifactu" class="w-full rounded-xl border border-emerald-200 bg-emerald-50 py-3 text-xs font-extrabold text-emerald-800">🔗 Verificar integridad Veri*factu</button>
+          <button data-click="limpiarDatosDemostraciónSeguro" class="w-full rounded-xl border border-rose-200 bg-rose-50 py-3 text-xs font-extrabold text-rose-700">🗑️ Borrar datos</button>
+          <button data-click="cerrarSesion" class="w-full rounded-xl border border-slate-200 bg-slate-100 py-2.5 text-xs font-extrabold text-slate-700">Cerrar Sesión</button>
+          <button data-click="cerrarEmpresaYEmpezarDeCero" class="w-full rounded-xl bg-red-700 py-3 text-xs font-extrabold text-white">🚪 Cerrar Empresa y empezar de cero</button>
+        </div>
+      </details>
 
       <!-- 5. VERSIÓN Y ACTUALIZACIONES -->
-      <div class="bg-slate-900 text-white p-4 sm:p-5 rounded-2xl space-y-3 shadow-md">
-        <div class="flex justify-between items-center">
-          <div>
-            <div class="text-[10px] font-bold tracking-widest uppercase text-amber-400">ConstruFactu · Control de Versión</div>
-            <div class="text-xs font-extrabold mt-0.5">Versión Instalada: v0.9.45 · Compilación 2026-11-12</div>
-          </div>
-          <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">OFICIAL</span>
+      <details class="group overflow-hidden rounded-2xl bg-slate-900 text-white shadow-md">
+        <summary class="flex cursor-pointer list-none select-none items-center justify-between gap-3 px-4 py-4 sm:px-5">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-amber-400">ConstruFactu · Versión y Actualizaciones</span>
+          <span class="flex shrink-0 items-center gap-2">
+            <span class="rounded border border-slate-700 bg-slate-800 px-2 py-0.5 text-[10px] font-bold text-slate-300">OFICIAL</span>
+            <svg class="h-4 w-4 text-slate-300 transition-transform duration-200 group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 7.47a.75.75 0 0 1 1.06 0L10 11.19l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 8.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+          </span>
+        </summary>
+        <div class="space-y-3 border-t border-slate-700 px-4 pb-5 pt-4 sm:px-5">
+          <div class="text-xs font-extrabold">Versión Instalada: v0.9.45 · Compilación 2026-11-12</div>
+          <p class="text-[11px] leading-relaxed text-slate-300">Incluye módulo Tarifario con capítulos, importación Excel/CSV, hojas A4 y Veri*factu local.</p>
+          <button data-click="buscarActualizaciones" class="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800 py-3 text-xs font-extrabold text-amber-400 transition hover:bg-slate-700">
+            🔄 BUSCAR ACTUALIZACIONES AHORA
+          </button>
         </div>
-        <p class="text-[11px] text-slate-300 leading-relaxed">Incluye módulo Tarifario con capítulos, importación Excel/CSV, hojas A4 y Veri*factu local.</p>
-        <button data-click="buscarActualizaciones" class="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-400 font-extrabold text-xs flex items-center justify-center gap-2 transition">
-          🔄 BUSCAR ACTUALIZACIONES AHORA
-        </button>
-      </div>
+      </details>
     </section>
 
     <!-- MODAL CERRAR EMPRESA -->

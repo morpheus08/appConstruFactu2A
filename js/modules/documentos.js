@@ -115,6 +115,9 @@ function abrirListadoDocs(seccion) {
         const tot = calcTotalesDoc(d);
         const esRect = d.tipo === 'rectificativa';
         const esOficial = (d.tipo === 'factura' || esRect) && d.estado === 'Oficial';
+        const presupuestoVinculado = d.tipo === 'albaran' && d.presupuestoVinculadoId
+          ? (ConstruFactu.Store.state.documentos || []).find(doc => doc.tipo === 'presupuesto' && String(doc.id) === String(d.presupuestoVinculadoId))
+          : null;
         let botonRectificar = (esOficial && d.tipo === 'factura') ? `<button data-click="iniciarRectificativa" data-click-args='["${escapeHTML(d.id)}"]' class="py-2 px-3 rounded-xl bg-indigo-50 text-indigo-800 border font-extrabold text-xs">🔄 RECTIFICAR</button>` : '';
 
         return `
@@ -127,6 +130,7 @@ function abrirListadoDocs(seccion) {
                 </div>
                 <p class="text-xs font-bold text-slate-700 mt-0.5 whitespace-pre-line">${escapeHTML(cli.nombre)}</p>
                 ${d.obra ? `<p class="text-xs text-indigo-700 font-semibold mt-0.5">Obra: ${escapeHTML(d.obra)}</p>` : ''}
+                ${d.tipo === 'albaran' && d.presupuestoVinculadoId ? `<p class="text-[11px] text-indigo-700 font-semibold mt-0.5">Vinculado a: ${escapeHTML(presupuestoVinculado ? presupuestoVinculado.numero : 'Presupuesto no disponible')}</p>` : ''}
                 <p class="text-[11px] text-slate-400">Fecha: ${escapeHTML(d.fecha)}</p>
               </div>
               <div class="text-right"><div class="text-base font-extrabold text-slate-900">${fmtEuro(tot.total)}</div></div>
@@ -187,6 +191,7 @@ function abrirListadoDocs(seccion) {
 
       document.getElementById('rectificativa-fields').classList.toggle('hidden', !esRect);
       document.getElementById('wrapper-doc-estado').classList.toggle('hidden', tipo !== 'presupuesto');
+      document.getElementById('wrapper-presupuesto-vinculado').classList.toggle('hidden', tipo !== 'albaran');
 
       if (doc) {
         poblarSelectClientes(doc.clienteId);
@@ -221,6 +226,8 @@ function abrirListadoDocs(seccion) {
         lineasEditorTemp = [{ concepto: '', cantidad: 1, unidad: 'ud', precio: 0 }];
       }
 
+      actualizarPresupuestosVinculables(tipo === 'albaran' && doc ? doc.presupuestoVinculadoId || '' : '');
+
       const yaConvertido = doc && (
         doc.estado === 'Facturado' ||
         ConstruFactu.Store.state.documentos.some(d => d.origenPresupuestoId === doc.id)
@@ -230,6 +237,27 @@ function abrirListadoDocs(seccion) {
 
       renderLineasEditor();
       recalcularEditor();
+    }
+
+    function actualizarPresupuestosVinculables(presupuestoId) {
+      const selector = document.getElementById('doc-presupuesto-vinculado');
+      if (!selector) return;
+
+      const clienteId = document.getElementById('doc-cliente').value;
+      const idSeleccionado = typeof presupuestoId === 'undefined' ? selector.value : presupuestoId;
+      const presupuestos = (ConstruFactu.Store.state.documentos || []).filter(doc =>
+        !doc.deletedAt &&
+        doc.tipo === 'presupuesto' &&
+        String(doc.clienteId) === String(clienteId)
+      );
+
+      selector.innerHTML = '<option value="">-- Sin presupuesto vinculado --</option>' +
+        presupuestos.map(doc =>
+          `<option value="${escapeHTML(doc.id)}">${escapeHTML(doc.numero || 'Presupuesto')}</option>`
+        ).join('');
+      selector.value = presupuestos.some(doc => String(doc.id) === String(idSeleccionado))
+        ? String(idSeleccionado)
+        : '';
     }
 
     function renderLineasEditor() {
@@ -411,6 +439,20 @@ function abrirListadoDocs(seccion) {
           motivoRectificacion: esRect ? document.getElementById('doc-motivo-rectificacion').value.trim() : undefined
         };
       }
+      if (tipo === 'albaran') {
+        const presupuestoId = document.getElementById('doc-presupuesto-vinculado').value;
+        const presupuesto = presupuestoId && (ConstruFactu.Store.state.documentos || []).find(doc =>
+          !doc.deletedAt &&
+          doc.tipo === 'presupuesto' &&
+          String(doc.id) === String(presupuestoId) &&
+          String(doc.clienteId) === String(clienteId)
+        );
+        if (presupuestoId && !presupuesto) {
+          avisar('El presupuesto vinculado debe pertenecer al cliente seleccionado y estar activo.', { tipo: 'error' });
+          return null;
+        }
+        docObj.presupuestoVinculadoId = presupuesto ? presupuesto.id : null;
+      }
       if ((await ConstruFactu.Documentos.guardar(docObj)) === false) return null;
       
       if (vistaPrevia === 'pdf') {
@@ -537,6 +579,8 @@ function abrirListadoDocs(seccion) {
   window.volverDeEditor = CF.volverDeEditor;
   CF.abrirEditorDocumento = function() { return abrirEditorDocumento.apply(this, arguments); };
   window.abrirEditorDocumento = CF.abrirEditorDocumento;
+  CF.actualizarPresupuestosVinculables = function() { return actualizarPresupuestosVinculables.apply(this, arguments); };
+  window.actualizarPresupuestosVinculables = CF.actualizarPresupuestosVinculables;
   CF.renderLineasEditor = function() { return renderLineasEditor.apply(this, arguments); };
   window.renderLineasEditor = CF.renderLineasEditor;
   CF.actualizarCampoLinea = function() { return actualizarCampoLinea.apply(this, arguments); };
