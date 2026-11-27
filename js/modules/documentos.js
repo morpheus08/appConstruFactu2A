@@ -239,22 +239,95 @@ function abrirListadoDocs(seccion) {
         <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
           <div class="flex items-center justify-between text-[11px] font-bold text-slate-500 gap-2">
             <span>Partida #${idx + 1}</span>
-            <select data-change="seleccionarPartidaTarifario" data-change-args='[${idx},"$value"]' class="max-w-[150px] sm:max-w-[200px] px-2 py-1 rounded border bg-white text-[10px] text-indigo-700 font-bold truncate">
+            <select id="select-tarifario-fila-${idx + 1}" data-change="seleccionarPartidaTarifario" data-change-args='[${idx},"$value"]' class="max-w-[150px] sm:max-w-[200px] px-2 py-1 rounded border bg-white text-[10px] text-indigo-700 font-bold truncate">
               <option value="">📐 Tarifario...</option>
               ${opcionesTarifario}
             </select>
           </div>
           <div class="flex gap-2 items-center">
-            <textarea rows="2" placeholder="Descripción..." data-input="actualizarCampoLinea" data-input-args='[${idx},"concepto","$value"]' class="flex-1 px-3 py-2 rounded-lg border bg-white text-xs font-semibold resize-y">${escapeHTML(l.concepto)}</textarea>
+            <textarea id="input-descripcion-fila-${idx + 1}" rows="2" placeholder="Descripción..." data-input="actualizarConceptoLinea" data-input-args='[${idx},"$value"]' class="flex-1 px-3 py-2 rounded-lg border bg-white text-xs font-semibold resize-y">${escapeHTML(l.concepto)}</textarea>
             <button data-click="eliminarLineaEditor" data-click-args='[${idx}]' class="px-2.5 py-2 rounded-lg bg-rose-100 text-rose-700 font-bold text-xs">✕</button>
           </div>
+          <div id="sugerencias-partida-${idx}" class="hidden max-h-48 overflow-y-auto rounded-lg border border-indigo-100 bg-white shadow-sm" role="listbox"></div>
           <div class="grid grid-cols-3 gap-2">
             <div><label class="block text-[9px] font-bold uppercase text-slate-400">Cantidad</label><input type="number" step="0.01" value="${l.cantidad}" data-input="actualizarCampoLinea" data-input-args='[${idx},"cantidad","$value"]' class="w-full px-2 py-1 rounded-lg border text-xs font-bold"></div>
-            <div><label class="block text-[9px] font-bold uppercase text-slate-400">Unidad</label><input type="text" value="${escapeHTML(l.unidad)}" data-input="actualizarCampoLinea" data-input-args='[${idx},"unidad","$value"]' class="w-full px-2 py-1 rounded-lg border text-xs font-bold"></div>
-            <div><label class="block text-[9px] font-bold uppercase text-slate-400">Precio (€)</label><input type="number" step="0.01" value="${l.precio}" data-input="actualizarCampoLinea" data-input-args='[${idx},"precio","$value"]' class="w-full px-2 py-1 rounded-lg border text-xs font-bold"></div>
+            <div><label class="block text-[9px] font-bold uppercase text-slate-400">Unidad</label><input id="input-unidad-fila-${idx + 1}" type="text" value="${escapeHTML(l.unidad)}" data-input="actualizarCampoLinea" data-input-args='[${idx},"unidad","$value"]' class="w-full px-2 py-1 rounded-lg border text-xs font-bold"></div>
+            <div><label class="block text-[9px] font-bold uppercase text-slate-400">Precio (€)</label><input id="input-precio-fila-${idx + 1}" type="number" step="0.01" value="${l.precio}" data-input="actualizarCampoLinea" data-input-args='[${idx},"precio","$value"]' class="w-full px-2 py-1 rounded-lg border text-xs font-bold"></div>
           </div>
         </div>
       `).join('');
+    }
+
+    function actualizarConceptoLinea(idx, valor) {
+      if (!lineasEditorTemp[idx]) return;
+      lineasEditorTemp[idx].concepto = valor;
+      recalcularEditor();
+
+      const sugerencias = document.getElementById(`sugerencias-partida-${idx}`);
+      if (!sugerencias) return;
+      const palabras = String(valor || '').trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
+      if (!palabras.length) {
+        sugerencias.innerHTML = '';
+        sugerencias.classList.add('hidden');
+        return;
+      }
+
+      const partidas = (ConstruFactu.Store.state.catalogoPrecios || [])
+        .filter(partida => {
+          if (partida.deletedAt) return false;
+          const texto = `${partida.concepto || ''} ${partida.capitulo || ''}`.toLocaleLowerCase();
+          return palabras.every(palabra => texto.includes(palabra));
+        })
+        .slice(0, 8);
+
+      if (!partidas.length) {
+        sugerencias.innerHTML = '';
+        sugerencias.classList.add('hidden');
+        return;
+      }
+
+      sugerencias.innerHTML = partidas.map(partida => `
+        <button type="button" role="option" data-click="seleccionarSugerenciaPartida" data-click-args='${escapeHTML(JSON.stringify([idx, String(partida.id)]))}' class="flex w-full items-center justify-between gap-3 border-b border-slate-100 px-3 py-2 text-left last:border-b-0 hover:bg-indigo-50">
+          <span class="text-xs font-semibold text-slate-800">${escapeHTML(partida.concepto)}</span>
+          <span class="shrink-0 text-[10px] font-bold text-indigo-700">${fmtEuro(partida.precio)} / ${escapeHTML(partida.unidad)}</span>
+        </button>
+      `).join('');
+      sugerencias.classList.remove('hidden');
+    }
+
+    function seleccionarSugerenciaPartida(idx, partidaId) {
+      const partida = (ConstruFactu.Store.state.catalogoPrecios || [])
+        .find(item => !item.deletedAt && String(item.id) === String(partidaId));
+      if (!partida) {
+        console.warn('[Documentos] No se encontró la partida seleccionada en el tarifario:', partidaId);
+        return;
+      }
+      aplicarPartidaTarifarioEditor(idx, partida);
+    }
+
+    function aplicarPartidaTarifarioEditor(idx, partida) {
+      const linea = lineasEditorTemp[idx];
+      if (!linea || !partida) return;
+
+      linea.concepto = partida.concepto || '';
+      linea.unidad = partida.unidad || 'ud';
+      linea.precio = Number(partida.precio) || 0;
+
+      const descripcion = document.getElementById(`input-descripcion-fila-${idx + 1}`);
+      const unidad = document.getElementById(`input-unidad-fila-${idx + 1}`);
+      const precio = document.getElementById(`input-precio-fila-${idx + 1}`);
+      const selector = document.getElementById(`select-tarifario-fila-${idx + 1}`);
+      if (descripcion) descripcion.value = linea.concepto;
+      if (unidad) unidad.value = linea.unidad;
+      if (precio) precio.value = linea.precio;
+      if (selector) selector.value = '';
+
+      const sugerencias = document.getElementById(`sugerencias-partida-${idx}`);
+      if (sugerencias) {
+        sugerencias.innerHTML = '';
+        sugerencias.classList.add('hidden');
+      }
+      recalcularEditor();
     }
 
     function actualizarCampoLinea(idx, campo, val) {
@@ -467,6 +540,12 @@ function abrirListadoDocs(seccion) {
   window.renderLineasEditor = CF.renderLineasEditor;
   CF.actualizarCampoLinea = function() { return actualizarCampoLinea.apply(this, arguments); };
   window.actualizarCampoLinea = CF.actualizarCampoLinea;
+  CF.actualizarConceptoLinea = function() { return actualizarConceptoLinea.apply(this, arguments); };
+  window.actualizarConceptoLinea = CF.actualizarConceptoLinea;
+  CF.seleccionarSugerenciaPartida = function() { return seleccionarSugerenciaPartida.apply(this, arguments); };
+  window.seleccionarSugerenciaPartida = CF.seleccionarSugerenciaPartida;
+  CF.aplicarPartidaTarifarioEditor = function() { return aplicarPartidaTarifarioEditor.apply(this, arguments); };
+  window.aplicarPartidaTarifarioEditor = CF.aplicarPartidaTarifarioEditor;
   CF.agregarLineaEditor = function() { return agregarLineaEditor.apply(this, arguments); };
   window.agregarLineaEditor = CF.agregarLineaEditor;
   CF.eliminarLineaEditor = function() { return eliminarLineaEditor.apply(this, arguments); };

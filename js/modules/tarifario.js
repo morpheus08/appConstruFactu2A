@@ -58,13 +58,12 @@
       };
 function seleccionarPartidaTarifario(idx, tarId) {
       if (!tarId) return;
-      const part = ConstruFactu.Tarifario.obtenerTodos().find(p => p.id === tarId);
-      if (!part) return;
-      lineasEditorTemp[idx].concepto = part.concepto;
-      lineasEditorTemp[idx].unidad = part.unidad;
-      lineasEditorTemp[idx].precio = part.precio;
-      renderLineasEditor();
-      recalcularEditor();
+      const part = ConstruFactu.Tarifario.obtenerTodos().find(p => String(p.id) === String(tarId));
+      if (!part) {
+        console.warn('[Tarifario] No se encontró la partida seleccionada:', tarId);
+        return;
+      }
+      window.aplicarPartidaTarifarioEditor(idx, part);
     }
 function renderTarifario() {
       const q = (document.getElementById('buscar-tarifario').value || '').toLowerCase();
