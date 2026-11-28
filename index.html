@@ -112,7 +112,10 @@
           </div>
           <div>
             <label class="block text-xs font-bold uppercase text-slate-500 mb-1">PIN / Contraseña</label>
-            <input id="login-pass" type="password" class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 text-sm font-medium focus:outline-none focus:border-slate-800">
+            <div class="flex items-stretch gap-2">
+              <input id="login-pass" type="password" class="min-w-0 flex-1 px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 text-sm font-medium focus:outline-none focus:border-slate-800">
+              <button type="button" data-click="alternarVisibilidadPin" aria-label="Mostrar PIN" aria-controls="login-pass" aria-pressed="false" title="Mostrar PIN" class="px-3 rounded-xl border border-slate-300 bg-slate-50 text-xl leading-none text-slate-600">👁️</button>
+            </div>
           </div>
           <button data-click="iniciarSesion" class="w-full py-3.5 rounded-xl bg-slate-900 text-white font-bold text-sm tracking-wide shadow-md active:scale-[0.99] transition">
             ENTRAR A CONSTRUFACTU
@@ -252,6 +255,17 @@
           <span id="badge-tarifario" class="text-xs font-bold bg-indigo-50 text-indigo-800 px-2.5 py-1 rounded-lg">0</span>
         </button>
 
+        <button data-click="irA" data-click-args='["notas"]' class="md:col-span-2 bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-11 h-11 rounded-xl bg-cyan-50 text-cyan-700 flex items-center justify-center text-xl font-bold">📝</div>
+            <div class="text-left">
+              <div class="font-extrabold text-slate-900 text-sm">MEDICIONES Y NOTAS</div>
+              <div class="text-xs text-slate-500">Mediciones, observaciones y croquis de obra</div>
+            </div>
+          </div>
+          <span class="text-slate-400 text-lg">›</span>
+        </button>
+
         <button data-click="irA" data-click-args='["estado"]' class="bg-slate-800 text-white p-4 rounded-2xl shadow-sm flex items-center justify-between">
           <div class="flex items-center gap-3.5">
             <div class="w-11 h-11 rounded-xl bg-slate-700 text-emerald-400 flex items-center justify-center text-xl">📊</div>
@@ -273,6 +287,51 @@
           </div>
           <span class="text-slate-950 text-lg font-black">›</span>
         </button>
+      </div>
+    </section>
+
+    <!-- MEDICIONES Y NOTAS -->
+    <section id="view-notas" class="hidden flex-1 flex flex-col p-5">
+      <div class="flex items-center gap-3 mb-4">
+        <button data-click="volverAtras" class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-bold text-lg">‹</button>
+        <h2 class="text-xl font-extrabold text-slate-900 flex-1">MEDICIONES Y NOTAS</h2>
+      </div>
+      <div class="space-y-4 pb-10">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <label for="nota-fecha" class="block text-xs font-bold uppercase text-slate-500 mb-1">Fecha de la nota</label>
+            <input id="nota-fecha" type="date" class="w-full px-3.5 py-3 rounded-xl border border-slate-300 bg-white text-sm">
+          </div>
+          <div>
+            <label for="nota-cliente" class="block text-xs font-bold uppercase text-slate-500 mb-1">Cliente</label>
+            <div class="flex gap-2">
+              <select id="nota-cliente" class="min-w-0 flex-1 px-3.5 py-3 rounded-xl border border-slate-300 bg-white text-sm"></select>
+              <button type="button" data-click="abrirModalNuevoCliente" class="shrink-0 px-3 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-700">+ Nuevo</button>
+            </div>
+          </div>
+          <div>
+            <label for="nota-obra" class="block text-xs font-bold uppercase text-slate-500 mb-1">Obra / Referencia</label>
+            <input id="nota-obra" type="text" placeholder="Nombre de la obra / Referencia" class="w-full px-3.5 py-3 rounded-xl border border-slate-300 bg-white text-sm">
+          </div>
+        </div>
+        <div>
+          <label for="nota-texto" class="block text-xs font-bold uppercase text-slate-500 mb-1">Mediciones y observaciones</label>
+          <textarea id="nota-texto" rows="7" placeholder="Escribe aquí tus mediciones, observaciones o materiales..." class="w-full px-3.5 py-3 rounded-xl border border-slate-300 bg-white text-sm resize-y"></textarea>
+        </div>
+        <div class="space-y-2">
+          <div class="flex flex-wrap items-center gap-2">
+            <label for="nota-color" class="text-xs font-bold text-slate-600">Color del trazo</label>
+            <input id="nota-color" type="color" value="#0f172a" aria-label="Color del trazo" class="h-9 w-12 rounded-lg border border-slate-300 bg-white p-1">
+            <button type="button" data-click="alternarGomaNota" aria-pressed="false" class="px-3 py-2 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-700">Goma: inactiva</button>
+            <button type="button" data-click="limpiarLienzoNota" class="px-3 py-2 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-700">Limpiar Lienzo</button>
+          </div>
+          <canvas id="nota-canvas" width="800" height="600" aria-label="Lienzo para dibujar el croquis" style="border: 1px solid #ccc; touch-action: none; width: 100%; background: #fff;"></canvas>
+          <p class="text-[11px] text-slate-500">Dibuja con el ratón o con el dedo. El croquis se guarda junto con la nota.</p>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+          <button type="button" data-click="guardarNota" class="w-full py-3.5 rounded-xl bg-slate-900 text-white font-bold text-sm">GUARDAR NOTA</button>
+          <button type="button" data-click="generarPDFNotaActual" class="w-full py-3.5 rounded-xl bg-cyan-700 text-white font-bold text-sm">GENERAR PDF</button>
+        </div>
       </div>
     </section>
 
@@ -308,7 +367,7 @@
           <textarea id="cli-nombre" rows="2" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm resize-y" placeholder="Nombre completo o razón social..."></textarea>
         </div>
         <div>
-          <label class="block text-xs font-bold uppercase text-slate-500 mb-1">NIF / CIF *</label>
+          <label class="block text-xs font-bold uppercase text-slate-500 mb-1">NIF / CIF</label>
           <input id="cli-nif" type="text" class="w-full px-3.5 py-3 rounded-xl border border-slate-300 text-sm uppercase" placeholder="B12345678">
         </div>
         <div>
@@ -317,11 +376,11 @@
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Código Postal (CP) *</label>
+            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Código Postal (CP)</label>
             <input id="cli-cp" type="text" maxlength="5" inputmode="numeric" pattern="[0-9]*" data-input="validarYBuscarCP" data-input-args='["$value"]' class="w-full px-3.5 py-3 rounded-xl border border-slate-300 text-sm font-bold" placeholder="41800">
           </div>
           <div>
-            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Población *</label>
+            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Población</label>
             <input id="cli-poblacion" type="text" class="w-full px-3.5 py-3 rounded-xl border border-slate-300 text-sm" placeholder="Sanlúcar la Mayor">
           </div>
         </div>
@@ -455,7 +514,7 @@
             <textarea id="mcli-nombre" rows="2" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm resize-y" placeholder="Nombre completo..."></textarea>
           </div>
           <div>
-            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">NIF / CIF *</label>
+            <label class="block text-xs font-bold uppercase text-slate-500 mb-1">NIF / CIF</label>
             <input id="mcli-nif" type="text" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm uppercase" placeholder="B12345678">
           </div>
           <div>
@@ -464,11 +523,11 @@
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="block text-xs font-bold uppercase text-slate-500 mb-1">CP *</label>
+              <label class="block text-xs font-bold uppercase text-slate-500 mb-1">CP</label>
               <input id="mcli-cp" type="text" maxlength="5" inputmode="numeric" pattern="[0-9]*" data-input="validarYBuscarCPModal" data-input-args='["$value"]' class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm font-bold" placeholder="41800">
             </div>
             <div>
-              <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Población *</label>
+              <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Población</label>
               <input id="mcli-poblacion" type="text" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm" placeholder="Sanlúcar la Mayor">
             </div>
           </div>

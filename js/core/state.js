@@ -8,6 +8,7 @@ const estadoInicialPorDefecto = {
   clientes: [],
   documentos: [],
   gastos: [],
+  notas: [],
   proveedores: [],
   ultimoHashVerifactu: '0000000000000000000000000000000000000000000000000000000000000000',
   verifactuLog: [],

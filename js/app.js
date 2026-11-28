@@ -7,13 +7,17 @@
     let cierrePinValido = false;
     let cierreProcesando = false;
     let cierrePinToken = 0;
+    let notaCanvasInicializado = false;
+    let notaDibujando = false;
+    let notaGomaActiva = false;
+    let notaUltimoPunto = null;
     Object.assign(ConstruFactu, {
       DB_NAME: 'ConstruFactuDB_v0928',
       STORE_NAME: 'state_store',
       
       UI: {
         ocultarTodas() {
-          ['view-login', 'view-menu', 'view-clientes', 'view-cliente-form', 'view-docs', 'view-doc-editor', 'view-gastos', 'view-gasto-form', 'view-tarifario', 'view-tarifario-form', 'view-estado', 'view-config', 'view-ayuda'].forEach(id => {
+          ['view-login', 'view-menu', 'view-clientes', 'view-cliente-form', 'view-docs', 'view-doc-editor', 'view-gastos', 'view-gasto-form', 'view-tarifario', 'view-tarifario-form', 'view-estado', 'view-notas', 'view-config', 'view-ayuda'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.classList.add('hidden');
           });
@@ -41,6 +45,9 @@
           } else if (destino === 'estado') {
             renderEstado();
             document.getElementById('view-estado').classList.remove('hidden');
+          } else if (destino === 'notas') {
+            abrirVistaNotas();
+            document.getElementById('view-notas').classList.remove('hidden');
           } else if (destino === 'config') {
             cargarVistaConfig();
             document.getElementById('view-config').classList.remove('hidden');
@@ -129,6 +136,8 @@
             window.renderTarifario();
           } else if (this.vistaActual === 'estado' && visible('view-estado') && typeof window.renderEstado === 'function') {
             window.renderEstado();
+          } else if (this.vistaActual === 'notas' && visible('view-notas') && typeof window.poblarSelectNotaClientes === 'function') {
+            window.poblarSelectNotaClientes();
           } else if (this.vistaActual === 'config' && visible('view-config') && typeof window.cargarVistaConfig === 'function') {
             window.cargarVistaConfig();
           }
@@ -564,6 +573,17 @@
       else avisar(r.msg || 'Usuario o contraseña incorrectos.');
     }
 
+    function alternarVisibilidadPin() {
+      const input = document.getElementById('login-pass');
+      const boton = document.querySelector('[data-click="alternarVisibilidadPin"]');
+      const visible = input.type === 'password';
+      input.type = visible ? 'text' : 'password';
+      boton.textContent = visible ? '🙈' : '👁️';
+      boton.setAttribute('aria-label', visible ? 'Ocultar PIN' : 'Mostrar PIN');
+      boton.setAttribute('title', visible ? 'Ocultar PIN' : 'Mostrar PIN');
+      boton.setAttribute('aria-pressed', String(visible));
+    }
+
 
     async function registrarNuevaCuenta() {
       const emp = document.getElementById('reg-empresa').value.trim();
@@ -616,6 +636,128 @@
 
     function irA(vista, esPopState = false) {
       ConstruFactu.UI.irA(vista, esPopState);
+    }
+
+    function poblarSelectNotaClientes(seleccionarId = '') {
+      const select = document.getElementById('nota-cliente');
+      if (!select) return;
+      const valorActual = seleccionarId || select.value;
+      const clientes = (ConstruFactu.Store.state.clientes || []).filter(cliente => !cliente.deletedAt);
+      select.innerHTML = '<option value="">Sin cliente</option>' + clientes.map(cliente =>
+        `<option value="${escapeHTML(cliente.id)}">${escapeHTML(cliente.nombre)}${cliente.nif ? ` (${escapeHTML(cliente.nif)})` : ''}</option>`
+      ).join('');
+      select.value = clientes.some(cliente => cliente.id === valorActual) ? valorActual : '';
+    }
+
+    function abrirVistaNotas() {
+      const fecha = document.getElementById('nota-fecha');
+      if (fecha && !fecha.value) {
+        const hoy = new Date();
+        fecha.value = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+      }
+      poblarSelectNotaClientes();
+      inicializarCanvasNota();
+    }
+
+    function puntoEnCanvasNota(evento, canvas) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: (evento.clientX - rect.left) * canvas.width / rect.width,
+        y: (evento.clientY - rect.top) * canvas.height / rect.height
+      };
+    }
+
+    function iniciarTrazoNota(evento, canvas, contexto, puntoEvento = evento) {
+      if (evento.cancelable) evento.preventDefault();
+      const punto = puntoEnCanvasNota(puntoEvento, canvas);
+      notaDibujando = true;
+      notaUltimoPunto = punto;
+      contexto.strokeStyle = document.getElementById('nota-color').value;
+      contexto.lineWidth = notaGomaActiva ? 28 : 3;
+      contexto.lineCap = 'round';
+      contexto.lineJoin = 'round';
+      contexto.globalCompositeOperation = notaGomaActiva ? 'destination-out' : 'source-over';
+    }
+
+    function moverTrazoNota(evento, canvas, contexto, puntoEvento = evento) {
+      if (!notaDibujando) return;
+      if (evento.cancelable) evento.preventDefault();
+      const punto = puntoEnCanvasNota(puntoEvento, canvas);
+      contexto.beginPath();
+      contexto.moveTo(notaUltimoPunto.x, notaUltimoPunto.y);
+      contexto.lineTo(punto.x, punto.y);
+      contexto.stroke();
+      notaUltimoPunto = punto;
+    }
+
+    function terminarTrazoNota(contexto) {
+      notaDibujando = false;
+      notaUltimoPunto = null;
+      contexto.globalCompositeOperation = 'source-over';
+    }
+
+    function inicializarCanvasNota() {
+      if (notaCanvasInicializado) return;
+      const canvas = document.getElementById('nota-canvas');
+      if (!canvas) return;
+      const contexto = canvas.getContext('2d');
+      if (!contexto) {
+        avisar('No se pudo inicializar el lienzo de dibujo.', { tipo: 'error' });
+        return;
+      }
+      canvas.addEventListener('mousedown', evento => iniciarTrazoNota(evento, canvas, contexto));
+      canvas.addEventListener('mousemove', evento => moverTrazoNota(evento, canvas, contexto));
+      canvas.addEventListener('mouseup', () => terminarTrazoNota(contexto));
+      canvas.addEventListener('mouseleave', () => terminarTrazoNota(contexto));
+      canvas.addEventListener('touchstart', evento => {
+        if (evento.touches.length) iniciarTrazoNota(evento, canvas, contexto, evento.touches[0]);
+      }, { passive: false });
+      canvas.addEventListener('touchmove', evento => {
+        if (evento.touches.length) moverTrazoNota(evento, canvas, contexto, evento.touches[0]);
+      }, { passive: false });
+      canvas.addEventListener('touchend', () => terminarTrazoNota(contexto));
+      canvas.addEventListener('touchcancel', () => terminarTrazoNota(contexto));
+      notaCanvasInicializado = true;
+    }
+
+    function alternarGomaNota() {
+      notaGomaActiva = !notaGomaActiva;
+      const boton = document.querySelector('#view-notas [data-click="alternarGomaNota"]');
+      boton.textContent = notaGomaActiva ? 'Goma: activa' : 'Goma: inactiva';
+      boton.setAttribute('aria-pressed', String(notaGomaActiva));
+    }
+
+    function limpiarLienzoNota() {
+      const canvas = document.getElementById('nota-canvas');
+      canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function obtenerNotaDelFormulario() {
+      return {
+        fecha: document.getElementById('nota-fecha').value,
+        clienteId: document.getElementById('nota-cliente').value,
+        obra: document.getElementById('nota-obra').value.trim(),
+        texto: document.getElementById('nota-texto').value.trim(),
+        croquis: document.getElementById('nota-canvas').toDataURL('image/png')
+      };
+    }
+
+    async function guardarNota() {
+      const nota = obtenerNotaDelFormulario();
+      nota.id = 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+      nota.createdAt = Date.now();
+      const notas = ConstruFactu.Store.state.notas || (ConstruFactu.Store.state.notas = []);
+      notas.unshift(nota);
+      if (!(await ConstruFactu.Store.save())) {
+        notas.splice(notas.indexOf(nota), 1);
+        avisar('No se pudo guardar la nota. Comprueba el almacenamiento y vuelve a intentarlo.', { tipo: 'error' });
+        return;
+      }
+      avisar('Nota guardada.');
+    }
+
+    async function generarPDFNotaActual() {
+      await window.abrirPDFNota(obtenerNotaDelFormulario());
     }
 
     function volverAtras() {

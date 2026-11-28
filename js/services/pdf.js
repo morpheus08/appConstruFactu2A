@@ -306,6 +306,159 @@ function verPDFDocumento(id) {
       return pdf;
     }
 
+    async function generarPDFNota(nota, estado = null) {
+      if (!nota || typeof nota !== 'object') throw new Error('No hay datos de la nota para generar el PDF.');
+      if (!(window.jspdf && window.jspdf.jsPDF)) throw new Error('No se pudo cargar la librería de PDF.');
+      const S = estado || ConstruFactu.Store.state;
+      const empresa = S.empresa || {};
+      const cliente = (S.clientes || []).find(c => c.id === nota.clienteId && !c.deletedAt) || {};
+      const pdf = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
+      const L = 16, R = 194, W = R - L, MAX_Y = 273;
+      const C = { ink: [15, 23, 42], gris: [71, 85, 105], suave: [100, 116, 139], claro: [148, 163, 184], fondo: [248, 250, 252], borde: [226, 232, 240] };
+      const color = rgb => pdf.setTextColor(rgb[0], rgb[1], rgb[2]);
+      const fuente = (estilo, tamano) => { pdf.setFont('helvetica', estilo); pdf.setFontSize(tamano); };
+      const fechaISO = String(nota.fecha || '');
+      const fechaValida = /^\d{4}-\d{2}-\d{2}$/.test(fechaISO) && !Number.isNaN(new Date(fechaISO + 'T00:00:00').getTime());
+      const fecha = fechaValida ? new Date(fechaISO + 'T00:00:00').toLocaleDateString('es-ES') : pdfTxt(fechaISO);
+      pdf.setProperties({ title: 'Mediciones y notas - ' + pdfTxt(fecha), subject: pdfTxt(nota.obra || 'Nota de obra'), author: pdfTxt(empresa.nombre || ''), creator: 'ConstruFactu' });
+
+      let y = 16;
+      pdf.setFillColor(...C.fondo);
+      pdf.roundedRect(L, y, W, 34, 2, 2, 'F');
+      const logo = await prepararLogo(empresa.logo);
+      let xEmpresa = L + 5;
+      if (logo) {
+        const k = Math.min(22 / logo.w, 22 / logo.h);
+        const w = logo.w * k, h = logo.h * k;
+        pdf.addImage(logo.data, 'PNG', L + 5, y + 6, w, h);
+        xEmpresa = L + 33;
+      }
+      fuente('bold', 13); color(C.ink);
+      const nombreEmpresa = pdf.splitTextToSize(pdfTxt(empresa.nombre || 'Empresa'), logo ? 94 : 125);
+      pdf.text(nombreEmpresa, xEmpresa, y + 12);
+      fuente('normal', 8.5); color(C.gris);
+      const datosEmpresa = [
+        empresa.nif ? 'NIF: ' + pdfTxt(empresa.nif) : '',
+        empresa.direccion ? pdfTxt(empresa.direccion) : '',
+        S.auth && S.auth.email ? pdfTxt(S.auth.email) : ''
+      ].filter(Boolean);
+      if (datosEmpresa.length) {
+        const detalleEmpresa = pdf.splitTextToSize(datosEmpresa.join('  ·  '), R - xEmpresa - 7);
+        pdf.text(detalleEmpresa, xEmpresa, y + 17 + (nombreEmpresa.length - 1) * 4);
+      }
+      fuente('bold', 9); color(C.ink);
+      pdf.text('MEDICIONES Y NOTAS', R - 5, y + 12, { align: 'right' });
+      fuente('normal', 8); color(C.suave);
+      pdf.text(fecha, R - 5, y + 19, { align: 'right' });
+      y += 42;
+
+      const nombreCliente = pdf.splitTextToSize(pdfTxt(cliente.nombre || 'Sin cliente'), W - 10);
+      const detalleCliente = [
+        cliente.nif ? 'NIF: ' + pdfTxt(cliente.nif) : '',
+        cliente.direccion ? pdfTxt(cliente.direccion) : '',
+        [cliente.cp, cliente.poblacion].filter(Boolean).map(pdfTxt).join(' ')
+      ].filter(Boolean).flatMap(linea => pdf.splitTextToSize(linea, W - 10));
+      const altoCliente = 12 + (nombreCliente.length + detalleCliente.length) * 4.5;
+      pdf.setFillColor(...C.fondo); pdf.setDrawColor(...C.borde);
+      pdf.roundedRect(L, y, W, altoCliente, 2, 2, 'FD');
+      fuente('bold', 7); color(C.suave);
+      pdf.text('CLIENTE', L + 5, y + 5);
+      let yCliente = y + 11;
+      fuente('bold', 10); color(C.ink);
+      pdf.text(nombreCliente, L + 5, yCliente);
+      yCliente += nombreCliente.length * 4.5;
+      if (detalleCliente.length) {
+        fuente('normal', 8); color(C.gris);
+        pdf.text(detalleCliente, L + 5, yCliente + 1);
+      }
+      y += altoCliente + 6;
+
+      const lineasObra = pdf.splitTextToSize(pdfTxt(nota.obra || 'Sin obra o referencia'), 125);
+      const altoMeta = Math.max(17, 14 + lineasObra.length * 4.5);
+      pdf.setFillColor(255, 255, 255); pdf.setDrawColor(...C.borde);
+      pdf.roundedRect(L, y, W, altoMeta, 2, 2, 'FD');
+      fuente('bold', 7); color(C.suave);
+      pdf.text('FECHA', L + 5, y + 5);
+      pdf.text('OBRA / REFERENCIA', L + 48, y + 5);
+      fuente('bold', 9); color(C.ink);
+      pdf.text(fecha || '—', L + 5, y + 11);
+      pdf.text(lineasObra, L + 48, y + 11);
+      y += altoMeta + 8;
+
+      const siguientePagina = () => {
+        pdf.addPage();
+        y = 18;
+        fuente('bold', 9); color(C.ink);
+        pdf.text('MEDICIONES Y NOTAS · CONTINUACIÓN', L, y);
+        fuente('normal', 8); color(C.suave);
+        pdf.text(fecha, R, y, { align: 'right' });
+        pdf.setDrawColor(...C.borde); pdf.line(L, y + 4, R, y + 4);
+        y += 14;
+      };
+      const tituloSeccion = texto => {
+        if (y + 10 > MAX_Y) siguientePagina();
+        fuente('bold', 8); color(C.suave);
+        pdf.text(texto, L, y);
+        pdf.setDrawColor(...C.borde); pdf.line(L, y + 2, R, y + 2);
+        y += 9;
+      };
+
+      tituloSeccion('MEDICIONES Y OBSERVACIONES');
+      fuente('normal', 9.5); color(C.ink);
+      const lineasNota = String(nota.texto || 'Sin anotaciones.').replace(/\r\n?/g, '\n').split('\n')
+        .flatMap(linea => pdf.splitTextToSize(pdfTxt(linea || ' '), W));
+      for (const linea of lineasNota) {
+        if (y + 5 > MAX_Y) siguientePagina();
+        pdf.text(linea, L, y);
+        y += 5;
+      }
+      y += 4;
+
+      if (y + 8 + 133.5 > MAX_Y) siguientePagina();
+      tituloSeccion('CROQUIS');
+      if (nota.croquis) {
+        const anchoCroquis = W;
+        const altoCroquis = anchoCroquis * 600 / 800;
+        if (y + altoCroquis + 3 > MAX_Y) siguientePagina();
+        pdf.setDrawColor(...C.borde);
+        pdf.rect(L, y, anchoCroquis, altoCroquis);
+        pdf.addImage(nota.croquis, 'PNG', L + 1, y + 1, anchoCroquis - 2, altoCroquis - 2);
+        y += altoCroquis + 4;
+      } else {
+        fuente('normal', 9); color(C.suave);
+        pdf.text('No hay croquis guardado.', L, y);
+      }
+
+      const paginas = pdf.getNumberOfPages();
+      for (let pagina = 1; pagina <= paginas; pagina++) {
+        pdf.setPage(pagina);
+        pdf.setDrawColor(...C.borde); pdf.line(L, 284, R, 284);
+        fuente('normal', 7); color(C.suave);
+        pdf.text(pdfTxt(empresa.nombre || 'ConstruFactu'), L, 289);
+        pdf.text(`Página ${pagina} de ${paginas}`, R, 289, { align: 'right' });
+      }
+      return pdf;
+    }
+
+    async function abrirPDFNota(nota) {
+      const ventana = window.open('about:blank', '_blank');
+      if (!ventana) {
+        avisar('El navegador ha bloqueado la pestaña del PDF. Permite ventanas emergentes e inténtalo de nuevo.');
+        return;
+      }
+      ventana.opener = null;
+      let blobUrl = null;
+      try {
+        const pdf = await generarPDFNota(nota);
+        blobUrl = URL.createObjectURL(pdf.output('blob'));
+        ventana.location.href = blobUrl;
+      } catch (error) {
+        if (blobUrl) URL.revokeObjectURL(blobUrl);
+        ventana.close();
+        avisar('No se pudo generar el PDF: ' + error.message, { tipo: 'error' });
+      }
+    }
+
     async function descargarArchivoPDFA4() {
       const ventana = window.open('about:blank', '_blank');
       if (!ventana) {
@@ -339,6 +492,10 @@ function verPDFDocumento(id) {
   window.dibujarQRVector = CF.dibujarQRVector;
   CF.generarPDFVectorial = function() { return generarPDFVectorial.apply(this, arguments); };
   window.generarPDFVectorial = CF.generarPDFVectorial;
+  CF.generarPDFNota = function() { return generarPDFNota.apply(this, arguments); };
+  window.generarPDFNota = CF.generarPDFNota;
+  CF.abrirPDFNota = function() { return abrirPDFNota.apply(this, arguments); };
+  window.abrirPDFNota = CF.abrirPDFNota;
   CF.descargarArchivoPDFA4 = function() { return descargarArchivoPDFA4.apply(this, arguments); };
   window.descargarArchivoPDFA4 = CF.descargarArchivoPDFA4;
   CF.cerrarVistaPDF = function() { return cerrarVistaPDF.apply(this, arguments); };

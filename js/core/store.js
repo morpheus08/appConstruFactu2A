@@ -25,7 +25,7 @@
           if (!esObj(obj)) return ['El contenido no es un objeto JSON.'];
           if (!esObj(obj.empresa)) err.push('Falta "empresa".');
           ['clientes', 'documentos'].forEach(k => { if (!Array.isArray(obj[k])) err.push(`Falta la lista "${k}".`); });
-          ['gastos', 'proveedores', 'catalogoPrecios', 'unidades'].forEach(k => {
+          ['gastos', 'proveedores', 'catalogoPrecios', 'unidades', 'notas'].forEach(k => {
             if (obj[k] !== undefined && !Array.isArray(obj[k])) err.push(`"${k}" debe ser una lista.`);
           });
           const tipos = ['presupuesto', 'albaran', 'factura', 'rectificativa'];
@@ -36,7 +36,7 @@
             if (!esObj(c) || !c.id || typeof c.nombre !== 'string') err.push(`Cliente #${i + 1} inválido.`);
           });
           if (estricto) {
-            ['clientes', 'documentos', 'gastos', 'proveedores', 'catalogoPrecios'].forEach(k => (Array.isArray(obj[k]) ? obj[k] : []).forEach(x => {
+            ['clientes', 'documentos', 'gastos', 'proveedores', 'catalogoPrecios', 'notas'].forEach(k => (Array.isArray(obj[k]) ? obj[k] : []).forEach(x => {
               if (x && x.id !== undefined && !/^[\w.:-]{1,64}$/.test(String(x.id))) err.push(`Identificador no permitido en "${k}".`);
             }));
           }

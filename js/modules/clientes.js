@@ -128,8 +128,7 @@ function getCliente(id, estado = ConstruFactu.Store.state) {
       const cp = document.getElementById('cli-cp').value.trim();
       const poblacion = document.getElementById('cli-poblacion').value.trim();
       
-      if (!nombre || !nif) { avisar('El nombre y el NIF son obligatorios.'); return; }
-      if (cp && cp.length !== 5) { avisar('El código postal de España debe tener exactamente 5 cifras.'); return; }
+      if (!nombre) { avisar('El nombre es obligatorio.'); return; }
 
       const datos = {
         id: id || 'c' + Date.now(),
@@ -288,7 +287,7 @@ function getCliente(id, estado = ConstruFactu.Store.state) {
       const nombre = leerCampo('mcli-nombre');
       const nif = leerCampo('mcli-nif').toUpperCase();
       const cp = leerCampo('mcli-cp');
-      if (!nombre || !nif) { avisar('Nombre y NIF obligatorios.'); return; }
+      if (!nombre) { avisar('El nombre es obligatorio.'); return; }
       const nuevoId = 'c' + Date.now();
       const nuevoCli = {
         id: nuevoId, nombre, nif,
@@ -302,6 +301,10 @@ function getCliente(id, estado = ConstruFactu.Store.state) {
       };
       await ConstruFactu.Clientes.guardar(nuevoCli);
       poblarSelectClientes(nuevoId);
+      const vistaNotas = document.getElementById('view-notas');
+      if (vistaNotas && !vistaNotas.classList.contains('hidden') && typeof window.poblarSelectNotaClientes === 'function') {
+        window.poblarSelectNotaClientes(nuevoId);
+      }
       cerrarModalNuevoCliente();
     }
 
