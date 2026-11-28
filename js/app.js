@@ -136,8 +136,11 @@
             window.renderTarifario();
           } else if (this.vistaActual === 'estado' && visible('view-estado') && typeof window.renderEstado === 'function') {
             window.renderEstado();
-          } else if (this.vistaActual === 'notas' && visible('view-notas') && typeof window.poblarSelectNotaClientes === 'function') {
-            window.poblarSelectNotaClientes();
+          } else if (this.vistaActual === 'notas' && visible('view-notas')) {
+            if (typeof window.poblarSelectNotaClientes === 'function') window.poblarSelectNotaClientes();
+            if (typeof window.renderNotas === 'function' && !document.getElementById('notas-listado-view')?.classList.contains('hidden')) {
+              window.renderNotas();
+            }
           } else if (this.vistaActual === 'config' && visible('view-config') && typeof window.cargarVistaConfig === 'function') {
             window.cargarVistaConfig();
           }
@@ -638,6 +641,138 @@
       ConstruFactu.UI.irA(vista, esPopState);
     }
 
+    function obtenerNombreClienteNota(clienteId) {
+      if (!clienteId) return 'Sin cliente';
+      const cli = (ConstruFactu.Store.state.clientes || []).find(c => c.id === clienteId && !c.deletedAt);
+      return cli ? cli.nombre : 'Sin cliente';
+    }
+
+    function obtenerExtractoNota(texto) {
+      const limpio = String(texto || '').trim().replace(/\s+/g, ' ');
+      if (!limpio) return 'Sin mediciones ni observaciones.';
+      return limpio.length > 50 ? `${limpio.slice(0, 50)}...` : limpio;
+    }
+
+    function esCroquisValido(dataUrl) {
+      return typeof dataUrl === 'string' && /^data:image\/(png|jpe?g|webp);base64,[A-Za-z0-9+/=]+$/.test(dataUrl);
+    }
+
+    function mostrarListadoNotas() {
+      document.getElementById('notas-editor-view')?.classList.add('hidden');
+      document.getElementById('notas-listado-view')?.classList.remove('hidden');
+      renderNotas();
+    }
+
+    function renderNotas() {
+      const cont = document.getElementById('lista-notas');
+      if (!cont) return;
+
+      const notas = (ConstruFactu.Store.state.notas || []).filter(n => !n.deletedAt);
+      if (!notas.length) {
+        cont.innerHTML = `
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 text-center text-xs text-slate-500">
+            No hay notas guardadas todavía. Pulsa <strong>+ Nueva Nota</strong> para crear la primera.
+          </div>
+        `;
+        return;
+      }
+
+      cont.innerHTML = notas.map(nota => {
+        const clienteNombre = obtenerNombreClienteNota(nota.clienteId);
+        const obraTexto = nota.obra ? nota.obra : 'Sin obra / referencia';
+        const extracto = obtenerExtractoNota(nota.texto);
+        const tieneCroquis = esCroquisValido(nota.croquis);
+
+        return `
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0 flex-1 space-y-1">
+                <div class="text-[11px] font-bold text-slate-400">${escapeHTML(nota.fecha || 'Sin fecha')}</div>
+                <div class="text-sm font-extrabold text-slate-900 truncate">${escapeHTML(clienteNombre)}</div>
+                <div class="text-xs font-semibold text-cyan-800 truncate">Obra: ${escapeHTML(obraTexto)}</div>
+                <p class="text-xs text-slate-600 pt-1 break-words">${escapeHTML(extracto)}</p>
+              </div>
+              ${tieneCroquis ? `
+                <img src="${nota.croquis}" alt="Miniatura del croquis" class="w-20 h-16 rounded-xl border border-slate-200 object-contain bg-slate-50 shrink-0">
+              ` : ''}
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100">
+              <button type="button" data-click="abrirEditorNota" data-click-args='["${escapeHTML(nota.id)}"]' class="py-2 px-2.5 rounded-xl bg-slate-900 text-white font-bold text-xs">
+                Abrir/Editar
+              </button>
+              <button type="button" data-click="generarPDFNotaPorId" data-click-args='["${escapeHTML(nota.id)}"]' class="py-2 px-2.5 rounded-xl bg-cyan-700 text-white font-bold text-xs">
+                Generar PDF
+              </button>
+              <button type="button" data-click="eliminarNota" data-click-args='["${escapeHTML(nota.id)}"]' class="py-2 px-2.5 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 font-bold text-xs">
+                Eliminar
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function dibujarCroquisEnCanvas(dataUrl) {
+      const canvas = document.getElementById('nota-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      ctx.save();
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (!esCroquisValido(dataUrl)) {
+        ctx.restore();
+        return;
+      }
+
+      const img = new Image();
+      img.onload = () => {
+        const currentCanvas = document.getElementById('nota-canvas');
+        const currentCtx = currentCanvas && currentCanvas.getContext('2d');
+        if (!currentCtx) return;
+        currentCtx.save();
+        currentCtx.globalCompositeOperation = 'source-over';
+        currentCtx.clearRect(0, 0, currentCanvas.width, currentCanvas.height);
+        currentCtx.drawImage(img, 0, 0, currentCanvas.width, currentCanvas.height);
+        currentCtx.restore();
+      };
+      img.src = dataUrl;
+      ctx.restore();
+    }
+
+    function abrirEditorNota(notaId = '') {
+      document.getElementById('notas-listado-view')?.classList.add('hidden');
+      document.getElementById('notas-editor-view')?.classList.remove('hidden');
+      inicializarCanvasNota();
+
+      const notas = ConstruFactu.Store.state.notas || [];
+      const nota = notaId ? notas.find(n => n.id === notaId && !n.deletedAt) : null;
+
+      const hoy = new Date();
+      const fechaHoy = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+
+      if (nota) {
+        document.getElementById('nota-editor-modo').textContent = 'Editando nota';
+        document.getElementById('nota-id').value = nota.id;
+        document.getElementById('nota-fecha').value = nota.fecha || fechaHoy;
+        poblarSelectNotaClientes(nota.clienteId || '');
+        document.getElementById('nota-obra').value = nota.obra || '';
+        document.getElementById('nota-texto').value = nota.texto || '';
+        dibujarCroquisEnCanvas(nota.croquis || '');
+      } else {
+        document.getElementById('nota-editor-modo').textContent = 'Nueva nota';
+        document.getElementById('nota-id').value = '';
+        document.getElementById('nota-fecha').value = fechaHoy;
+        poblarSelectNotaClientes('');
+        document.getElementById('nota-obra').value = '';
+        document.getElementById('nota-texto').value = '';
+        limpiarLienzoNota();
+      }
+    }
+
     function poblarSelectNotaClientes(seleccionarId = '') {
       const select = document.getElementById('nota-cliente');
       if (!select) return;
@@ -650,13 +785,9 @@
     }
 
     function abrirVistaNotas() {
-      const fecha = document.getElementById('nota-fecha');
-      if (fecha && !fecha.value) {
-        const hoy = new Date();
-        fecha.value = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
-      }
       poblarSelectNotaClientes();
       inicializarCanvasNota();
+      mostrarListadoNotas();
     }
 
     function puntoEnCanvasNota(evento, canvas) {
@@ -729,11 +860,18 @@
 
     function limpiarLienzoNota() {
       const canvas = document.getElementById('nota-canvas');
-      canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.save();
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.restore();
     }
 
     function obtenerNotaDelFormulario() {
       return {
+        id: document.getElementById('nota-id').value.trim(),
         fecha: document.getElementById('nota-fecha').value,
         clienteId: document.getElementById('nota-cliente').value,
         obra: document.getElementById('nota-obra').value.trim(),
@@ -743,21 +881,76 @@
     }
 
     async function guardarNota() {
-      const nota = obtenerNotaDelFormulario();
-      nota.id = 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-      nota.createdAt = Date.now();
+      const datos = obtenerNotaDelFormulario();
       const notas = ConstruFactu.Store.state.notas || (ConstruFactu.Store.state.notas = []);
-      notas.unshift(nota);
+      const ahora = Date.now();
+      const idx = datos.id ? notas.findIndex(n => n.id === datos.id) : -1;
+      const copiaPrevia = JSON.parse(JSON.stringify(notas));
+
+      if (idx !== -1) {
+        notas[idx] = {
+          ...notas[idx],
+          ...datos,
+          updatedAt: ahora
+        };
+      } else {
+        notas.unshift({
+          ...datos,
+          id: datos.id || ('n' + ahora.toString(36) + Math.random().toString(36).slice(2, 8)),
+          createdAt: ahora,
+          updatedAt: ahora
+        });
+      }
+
       if (!(await ConstruFactu.Store.save())) {
-        notas.splice(notas.indexOf(nota), 1);
+        ConstruFactu.Store.state.notas = copiaPrevia;
         avisar('No se pudo guardar la nota. Comprueba el almacenamiento y vuelve a intentarlo.', { tipo: 'error' });
         return;
       }
+
       avisar('Nota guardada.');
+      mostrarListadoNotas();
     }
 
     async function generarPDFNotaActual() {
       await window.abrirPDFNota(obtenerNotaDelFormulario());
+    }
+
+    async function generarPDFNotaPorId(id) {
+      const nota = (ConstruFactu.Store.state.notas || []).find(n => n.id === id && !n.deletedAt);
+      if (!nota) {
+        avisar('No se encontró la nota seleccionada.', { tipo: 'error' });
+        return;
+      }
+      await window.abrirPDFNota({
+        ...nota,
+        clienteNombre: obtenerNombreClienteNota(nota.clienteId)
+      });
+    }
+
+    async function eliminarNota(id) {
+      const nota = (ConstruFactu.Store.state.notas || []).find(n => n.id === id && !n.deletedAt);
+      if (!nota) return;
+
+      const confirmado = await confirmar(
+        `¿Seguro que quieres eliminar la nota${nota.obra ? ` de "${nota.obra}"` : ''}?`,
+        { titulo: 'Eliminar nota', aceptar: 'Eliminar', cancelar: 'Cancelar', peligro: true }
+      );
+      if (!confirmado) return;
+
+      const ahora = Date.now();
+      const copiaPrevia = JSON.parse(JSON.stringify(ConstruFactu.Store.state.notas || []));
+      nota.deletedAt = ahora;
+      nota.updatedAt = ahora;
+
+      if (!(await ConstruFactu.Store.save())) {
+        ConstruFactu.Store.state.notas = copiaPrevia;
+        avisar('No se pudo eliminar la nota.', { tipo: 'error' });
+        return;
+      }
+
+      renderNotas();
+      avisar('Nota eliminada.');
     }
 
     function volverAtras() {
